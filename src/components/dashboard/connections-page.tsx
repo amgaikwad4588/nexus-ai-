@@ -82,6 +82,7 @@ const fadeUp = {
 export function ConnectionsPage() {
   const [services, setServices] = useState<ConnectedService[]>([]);
   const [loading, setLoading] = useState(true);
+  const [disconnecting, setDisconnecting] = useState<string | null>(null);
 
   useEffect(() => {
     fetchConnections();
@@ -125,6 +126,30 @@ export function ConnectionsPage() {
       ]);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleDisconnect(service: ConnectedService) {
+    setDisconnecting(service.id);
+    try {
+      const res = await fetch("/api/disconnect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider: service.connection,
+          connection: service.connection,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        console.error("Disconnect failed:", data.error);
+      }
+    } catch (err) {
+      console.error("Disconnect error:", err);
+    } finally {
+      setDisconnecting(null);
+      setLoading(true);
+      fetchConnections();
     }
   }
 
@@ -282,7 +307,7 @@ export function ConnectionsPage() {
                       </ul>
                     </div>
 
-                    {/* Connect Button */}
+                    {/* Connect / Disconnect Button */}
                     {!service.connected && (
                       <a
                         href={`/api/connect?connection=${service.connection}`}
@@ -294,10 +319,28 @@ export function ConnectionsPage() {
                       </a>
                     )}
 
-                    {service.connected && service.lastUsed && (
-                      <p className="text-[10px] text-muted-foreground">
-                        Last used: {new Date(service.lastUsed).toLocaleString()}
-                      </p>
+                    {service.connected && (
+                      <div className="flex items-center justify-between">
+                        {service.lastUsed && (
+                          <p className="text-[10px] text-muted-foreground">
+                            Last used:{" "}
+                            {new Date(service.lastUsed).toLocaleString()}
+                          </p>
+                        )}
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          disabled={disconnecting === service.id}
+                          onClick={() => handleDisconnect(service)}
+                        >
+                          {disconnecting === service.id ? (
+                            <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                          ) : (
+                            <XCircle className="w-3 h-3 mr-2" />
+                          )}
+                          Disconnect
+                        </Button>
+                      </div>
                     )}
                   </div>
                 </CardContent>

@@ -27,7 +27,7 @@ export async function POST(req: Request) {
 
     setAIContext({ threadID });
 
-    const model = google("gemini-2.5-flash");
+    const model = google("gemini-3.1-flash-lite-preview");
     const modelMessages = await convertToModelMessages(messages);
 
     const tools = {
@@ -55,15 +55,16 @@ Guidelines:
 - Always be helpful, concise, and transparent about what actions you're taking
 - When performing actions, explain what you're doing and which service you're accessing
 - For write operations (creating issues, sending messages), confirm the action with the user first unless they've been explicit
-- If a service isn't connected, guide the user to connect it from the Connections page
+- If a tool returns an authorization error, do NOT retry it. Instead tell the user to connect that service from the Connections page.
 - Format responses nicely with markdown
 - When showing lists, use tables or bullet points for clarity
-- For cross-service tasks, explain your plan before executing
+- Only call one tool at a time. Do not call multiple tools in parallel.
 
 The user's name is ${session.user.name || "there"}.`,
       messages: modelMessages,
       tools,
-      stopWhen: stepCountIs(5),
+      maxRetries: 0,
+      stopWhen: stepCountIs(2),
     });
 
     return result.toUIMessageStreamResponse({

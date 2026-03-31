@@ -1,4 +1,5 @@
 import { auth0 } from "@/lib/auth0";
+import { getManagementToken } from "@/lib/management";
 
 export async function GET() {
   const session = await auth0.getSession();
@@ -10,6 +11,29 @@ export async function GET() {
   const refreshTokenPreview = session.tokenSet.refreshToken
     ? session.tokenSet.refreshToken.substring(0, 10) + "..."
     : null;
+
+  // Check user identities via Management API
+  let identitiesFromMgmt = null;
+  try {
+    const mgmtToken = await getManagementToken();
+    const domain = process.env.AUTH0_DOMAIN!;
+    const userRes = await fetch(
+      `https://${domain}/api/v2/users/${encodeURIComponent(session.user.sub)}?fields=identities`,
+      { headers: { Authorization: `Bearer ${mgmtToken}` } }
+    );
+    const userData = await userRes.json();
+    identitiesFromMgmt = userData.identities?.map(
+      (i: { provider: string; connection: string; access_token?: string; refresh_token?: string }) => ({
+        provider: i.provider,
+        connection: i.connection,
+        hasAccessToken: !!i.access_token,
+        hasRefreshToken: !!i.refresh_token,
+        accessTokenPreview: i.access_token ? i.access_token.substring(0, 15) + "..." : null,
+      })
+    );
+  } catch (err) {
+    identitiesFromMgmt = { error: String(err) };
+  }
 
   // Try the token exchange manually
   const domain = process.env.AUTH0_AI_DOMAIN || process.env.AUTH0_DOMAIN;
@@ -51,7 +75,7 @@ export async function GET() {
     user: session.user.sub,
     hasRefreshToken,
     refreshTokenPreview,
-    identities: session.user.identities?.map((i: { provider: string; connection: string }) => `${i.provider}|${i.connection}`) || "none in session",
+    identitiesFromMgmt,
     exchangeResults,
     config: {
       domain,

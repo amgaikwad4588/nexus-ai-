@@ -4,6 +4,8 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
   Send,
   Sparkles,
@@ -219,11 +221,12 @@ export function ChatInterface() {
                     return (
                       <div
                         key={i}
-                        className="text-sm leading-relaxed prose prose-invert max-w-none prose-sm prose-p:my-1 prose-ul:my-1 prose-li:my-0.5"
-                        dangerouslySetInnerHTML={{
-                          __html: formatMarkdown(textContent),
-                        }}
-                      />
+                        className="text-sm leading-relaxed prose prose-invert max-w-none prose-sm prose-p:my-1 prose-ul:my-1 prose-li:my-0.5 prose-table:my-2 prose-th:px-3 prose-th:py-1.5 prose-td:px-3 prose-td:py-1.5 prose-th:text-left prose-a:text-primary prose-a:no-underline hover:prose-a:underline"
+                      >
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {textContent}
+                        </ReactMarkdown>
+                      </div>
                     );
                   }
                   return null;
@@ -299,15 +302,3 @@ export function ChatInterface() {
   );
 }
 
-// Simple markdown formatter
-function formatMarkdown(text: string): string {
-  return text
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*(.+?)\*/g, "<em>$1</em>")
-    .replace(/`(.+?)`/g, '<code class="bg-accent/50 px-1 py-0.5 rounded text-xs">$1</code>')
-    .replace(/^### (.+)$/gm, '<h3 class="text-base font-semibold mt-3 mb-1">$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2 class="text-lg font-semibold mt-3 mb-1">$1</h2>')
-    .replace(/^- (.+)$/gm, '<li class="ml-4 list-disc">$1</li>')
-    .replace(/^(\d+)\. (.+)$/gm, '<li class="ml-4 list-decimal">$2</li>')
-    .replace(/\n/g, "<br/>");
-}
