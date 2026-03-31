@@ -341,17 +341,7 @@ export function ConnectionsPage() {
                       </a>
                     )}
 
-                    {!service.connected && service.id === "slack" && (
-                      <p className="text-xs text-muted-foreground">
-                        Slack uses a workspace bot token. Configure SLACK_BOT_TOKEN in environment variables.
-                      </p>
-                    )}
 
-                    {service.connected && service.id === "slack" && (
-                      <p className="text-xs text-green-400/70">
-                        Connected via Bot Token
-                      </p>
-                    )}
 
                     {service.connected && service.id !== "slack" && (
                       <div className="flex items-center justify-between">
