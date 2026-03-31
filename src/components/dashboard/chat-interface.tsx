@@ -2,7 +2,7 @@
 
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -16,8 +16,11 @@ import {
   MessageSquare,
   Calendar,
   Shield,
+  ShieldAlert,
+  ShieldCheck,
   CheckCircle,
   XCircle,
+  AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -45,6 +48,165 @@ const suggestedPrompts = [
   "What GitHub issues are assigned to me?",
 ];
 
+// Tracks approval state for pending actions
+interface ApprovalState {
+  status: "pending" | "approving" | "approved" | "denied" | "executed" | "error";
+  result?: Record<string, unknown>;
+  error?: string;
+}
+
+// Write tools that require step-up auth
+const WRITE_TOOLS = new Set(["createGitHubIssue", "sendSlackMessage"]);
+
+function StepUpApprovalCard({
+  pendingActionId,
+  action,
+  description,
+  details,
+  approvalState,
+  onApprove,
+  onDeny,
+}: {
+  pendingActionId: string;
+  action: string;
+  description: string;
+  details: Record<string, unknown>;
+  approvalState?: ApprovalState;
+  onApprove: (id: string) => void;
+  onDeny: (id: string) => void;
+}) {
+  const state = approvalState?.status || "pending";
+  const isGitHub = action === "createGitHubIssue";
+  const Icon = isGitHub ? GitBranch : MessageSquare;
+  const serviceColor = isGitHub ? "text-orange-400" : "text-purple-400";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-4 space-y-3"
+    >
+      {/* Header */}
+      <div className="flex items-center gap-2">
+        <ShieldAlert className="w-4 h-4 text-yellow-400" />
+        <span className="text-xs font-semibold text-yellow-400 uppercase tracking-wide">
+          Step-Up Authentication Required
+        </span>
+      </div>
+
+      {/* Action details */}
+      <div className="flex items-start gap-3 p-3 rounded-md bg-accent/30 border border-border/30">
+        <Icon className={`w-5 h-5 ${serviceColor} mt-0.5 shrink-0`} />
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium">{description}</p>
+          {Boolean("repo" in details && details.repo) && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Repository: <span className="font-mono">{String(details.repo)}</span>
+            </p>
+          )}
+          {Boolean("title" in details && details.title) && (
+            <p className="text-xs text-muted-foreground">
+              Title: {String(details.title)}
+            </p>
+          )}
+          {Boolean("channel" in details && details.channel) && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Channel: <span className="font-mono">#{String(details.channel)}</span>
+            </p>
+          )}
+          {Boolean("message" in details && details.message) && (
+            <p className="text-xs text-muted-foreground truncate">
+              Message: &ldquo;{String(details.message).slice(0, 100)}&rdquo;
+            </p>
+          )}
+        </div>
+        <Badge variant="outline" className="text-xs text-yellow-400 border-yellow-400/30 bg-yellow-400/10 shrink-0">
+          <AlertTriangle className="w-3 h-3 mr-1" />
+          write
+        </Badge>
+      </div>
+
+      {/* Action buttons or status */}
+      {state === "pending" && (
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            onClick={() => onApprove(pendingActionId)}
+            className="bg-green-600 hover:bg-green-700 text-white text-xs gap-1.5"
+          >
+            <ShieldCheck className="w-3.5 h-3.5" />
+            Authorize & Execute
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onDeny(pendingActionId)}
+            className="text-xs text-red-400 border-red-400/30 hover:bg-red-400/10 gap-1.5"
+          >
+            <XCircle className="w-3.5 h-3.5" />
+            Deny
+          </Button>
+          <span className="text-[10px] text-muted-foreground ml-auto">
+            Expires in 5 minutes
+          </span>
+        </div>
+      )}
+
+      {state === "approving" && (
+        <div className="flex items-center gap-2 text-xs text-yellow-400">
+          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          Verifying identity and executing action...
+        </div>
+      )}
+
+      {state === "executed" && approvalState?.result && (
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-xs text-green-400">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            Action authorized and executed successfully
+          </div>
+          {Boolean(approvalState.result.url) && (
+            <a
+              href={String(approvalState.result.url)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-primary hover:underline"
+            >
+              {String(approvalState.result.url)}
+            </a>
+          )}
+          {Boolean(approvalState.result.sent) && (
+            <p className="text-xs text-muted-foreground">
+              Message sent to channel successfully
+            </p>
+          )}
+        </div>
+      )}
+
+      {state === "approved" && (
+        <div className="flex items-center gap-2 text-xs text-green-400">
+          <ShieldCheck className="w-3.5 h-3.5" />
+          Approved — executing...
+        </div>
+      )}
+
+      {state === "denied" && (
+        <div className="flex items-center gap-2 text-xs text-red-400">
+          <XCircle className="w-3.5 h-3.5" />
+          Action denied by user
+        </div>
+      )}
+
+      {state === "error" && (
+        <div className="flex items-center gap-2 text-xs text-red-400">
+          <XCircle className="w-3.5 h-3.5" />
+          {approvalState?.error || "Failed to execute action"}
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
 export function ChatInterface() {
   const { messages, sendMessage, status, error } = useChat({
     transport: new DefaultChatTransport({ api: "/api/chat" }),
@@ -53,8 +215,60 @@ export function ChatInterface() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [showSuggestions, setShowSuggestions] = useState(true);
+  const [approvalStates, setApprovalStates] = useState<Record<string, ApprovalState>>({});
 
   const isLoading = status === "submitted" || status === "streaming";
+
+  const handleApprove = useCallback(async (actionId: string) => {
+    setApprovalStates((prev) => ({
+      ...prev,
+      [actionId]: { status: "approving" },
+    }));
+
+    try {
+      const res = await fetch("/api/step-up", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ actionId, decision: "approve" }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to approve");
+      }
+
+      const data = await res.json();
+      setApprovalStates((prev) => ({
+        ...prev,
+        [actionId]: { status: "executed", result: data.result },
+      }));
+    } catch (err) {
+      setApprovalStates((prev) => ({
+        ...prev,
+        [actionId]: {
+          status: "error",
+          error: err instanceof Error ? err.message : "Unknown error",
+        },
+      }));
+    }
+  }, []);
+
+  const handleDeny = useCallback(async (actionId: string) => {
+    setApprovalStates((prev) => ({
+      ...prev,
+      [actionId]: { status: "denied" },
+    }));
+
+    try {
+      await fetch("/api/step-up", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ actionId, decision: "deny" }),
+      });
+    } catch {
+      // Denial is best-effort on server
+    }
+  }, []);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -186,9 +400,33 @@ export function ChatInterface() {
                       : partType.replace("tool-", "");
                     const toolInfo = toolIcons[toolName];
                     const Icon = toolInfo?.icon || Shield;
-                    const partAny = part as { state?: string; output?: { error?: string } };
+                    const partAny = part as { state?: string; output?: Record<string, unknown> };
                     const isComplete = partAny.state === "output-available";
                     const isError = partAny.state === "error";
+
+                    // Check if this is a write tool that returned a step-up approval request
+                    const output = partAny.output as Record<string, unknown> | undefined;
+                    if (
+                      isComplete &&
+                      output?.requiresApproval === true &&
+                      output?.pendingActionId
+                    ) {
+                      const actionId = String(output.pendingActionId);
+                      return (
+                        <StepUpApprovalCard
+                          key={i}
+                          pendingActionId={actionId}
+                          action={String(output.action || toolName)}
+                          description={String(output.description || "")}
+                          details={(output.details as Record<string, unknown>) || {}}
+                          approvalState={approvalStates[actionId]}
+                          onApprove={handleApprove}
+                          onDeny={handleDeny}
+                        />
+                      );
+                    }
+
+                    // Standard tool badge for read operations
                     return (
                       <div
                         key={i}
@@ -203,6 +441,11 @@ export function ChatInterface() {
                         <span className="font-medium">
                           {toolName}
                         </span>
+                        {WRITE_TOOLS.has(toolName) && (
+                          <Badge variant="outline" className="text-[10px] text-yellow-400 border-yellow-400/30 ml-1">
+                            write
+                          </Badge>
+                        )}
                         <span className="ml-auto">
                           {isError ? (
                             <XCircle className="w-3 h-3 text-destructive" />

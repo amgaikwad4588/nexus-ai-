@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getAccessTokenFromTokenVault } from "@auth0/ai-vercel";
 import { withSlackAccess } from "@/lib/auth0-ai";
 import { addAuditEntry } from "@/lib/audit";
+import { createPendingAction } from "@/lib/step-up";
 
 export const listSlackChannels = withSlackAccess(
   tool({
@@ -68,49 +69,42 @@ export const listSlackChannels = withSlackAccess(
 export const sendSlackMessage = withSlackAccess(
   tool({
     description:
-      "Send a message to a Slack channel. This is a write action that posts visible content.",
+      "Send a message to a Slack channel. This is a WRITE action that requires step-up authentication. The action will be queued for user approval before execution.",
     inputSchema: z.object({
       channel: z
         .string()
         .describe("Channel name (without #) or channel ID"),
       message: z.string().describe("The message text to send"),
+      userId: z.string().optional().describe("Auto-filled by system"),
     }),
-    execute: async ({ channel, message }) => {
-      const accessToken = getAccessTokenFromTokenVault();
+    execute: async ({ channel, message, userId }) => {
+      // Step-up auth: queue action for approval instead of executing directly
+      const pendingAction = createPendingAction(
+        "sendSlackMessage",
+        { channel, message },
+        userId || "unknown",
+        `Send message to #${channel}: "${message.slice(0, 50)}..."`,
+        "slack",
+        "medium"
+      );
 
       addAuditEntry({
-        action: `Send Slack message to #${channel}`,
+        action: `Step-up required: Send Slack message to #${channel}`,
         service: "slack",
         scopes: ["chat:write"],
-        status: "success",
-        details: `Sent message to #${channel}: "${message.slice(0, 50)}..."`,
+        status: "pending_approval",
+        details: `Write operation queued for approval: message to #${channel}`,
         riskLevel: "medium",
-        stepUpRequired: false,
+        stepUpRequired: true,
       });
-
-      const response = await fetch("https://slack.com/api/chat.postMessage", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ channel, text: message }),
-      });
-
-      if (!response.ok) {
-        return { error: `Slack API error: ${response.status}` };
-      }
-
-      const data = await response.json();
-      if (!data.ok) {
-        return { error: data.error || "Failed to send message" };
-      }
 
       return {
-        sent: true,
-        channel: data.channel,
-        timestamp: data.ts,
-        message: message.slice(0, 100),
+        requiresApproval: true,
+        pendingActionId: pendingAction.id,
+        action: "sendSlackMessage",
+        description: `Send message to #${channel}`,
+        details: { channel, message: message.slice(0, 200) },
+        message: "This write operation requires your approval. Please confirm or deny this action.",
       };
     },
   })

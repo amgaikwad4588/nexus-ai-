@@ -230,12 +230,51 @@ export function PermissionsPage() {
                   <p className="text-xs text-muted-foreground mt-1">
                     Nexus requests only the minimum scopes needed for each
                     operation. Tokens are exchanged on-demand via Auth0 Token
-                    Vault and never cached in our application. High-risk write
-                    operations can trigger step-up authentication via CIBA
-                    (Client-Initiated Backchannel Authentication).
+                    Vault and never cached in our application.
                   </p>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Step-Up Auth Enforcement */}
+        <motion.div variants={fadeUp}>
+          <Card className="bg-yellow-500/5 border-yellow-500/20">
+            <CardContent className="pt-6 space-y-3">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="w-5 h-5 text-yellow-400 mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-yellow-400">
+                    Step-Up Authentication — Enforced
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Write operations are blocked until the user explicitly
+                    approves each action. The AI agent cannot execute writes
+                    without human authorization.
+                  </p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 ml-8">
+                <div className="flex items-center gap-2 p-2 rounded-md bg-accent/20 border border-border/30">
+                  <CheckCircle className="w-3.5 h-3.5 text-green-400 shrink-0" />
+                  <span className="text-xs">
+                    <span className="font-mono text-green-400">createGitHubIssue</span>
+                    {" "}&mdash; requires approval
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 p-2 rounded-md bg-accent/20 border border-border/30">
+                  <CheckCircle className="w-3.5 h-3.5 text-green-400 shrink-0" />
+                  <span className="text-xs">
+                    <span className="font-mono text-green-400">sendSlackMessage</span>
+                    {" "}&mdash; requires approval
+                  </span>
+                </div>
+              </div>
+              <p className="text-[10px] text-muted-foreground ml-8">
+                Approved actions create a step-up session valid for 10 minutes.
+                All approvals and denials are logged in the audit trail.
+              </p>
             </CardContent>
           </Card>
         </motion.div>
@@ -320,7 +359,7 @@ export function PermissionsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
                 {[
                   {
                     step: "1",
@@ -329,18 +368,23 @@ export function PermissionsPage() {
                   },
                   {
                     step: "2",
+                    title: "Risk Check",
+                    desc: "Write ops are flagged for step-up auth; reads proceed directly",
+                  },
+                  {
+                    step: "3",
+                    title: "Step-Up Auth",
+                    desc: "User approves or denies write operation via in-chat prompt",
+                  },
+                  {
+                    step: "4",
                     title: "Token Exchange",
                     desc: "Auth0 exchanges refresh token for scoped access token",
                   },
                   {
-                    step: "3",
-                    title: "API Call",
-                    desc: "Nexus calls the API with the scoped token",
-                  },
-                  {
-                    step: "4",
+                    step: "5",
                     title: "Audit Log",
-                    desc: "Action is logged with scope and risk level",
+                    desc: "Action + approval decision logged with scope and risk",
                   },
                 ].map((item) => (
                   <div

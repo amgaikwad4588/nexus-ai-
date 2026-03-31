@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getAccessTokenFromTokenVault } from "@auth0/ai-vercel";
 import { withGitHubAccess } from "@/lib/auth0-ai";
 import { addAuditEntry } from "@/lib/audit";
+import { createPendingAction } from "@/lib/step-up";
 
 export const listGitHubRepos = withGitHubAccess(
   tool({
@@ -149,7 +150,7 @@ export const getGitHubIssues = withGitHubAccess(
 export const createGitHubIssue = withGitHubAccess(
   tool({
     description:
-      "Create a new issue in a GitHub repository. This is a write action that modifies the repository.",
+      "Create a new issue in a GitHub repository. This is a WRITE action that requires step-up authentication. The action will be queued for user approval before execution.",
     inputSchema: z.object({
       repo: z.string().describe("Repository in 'owner/repo' format"),
       title: z.string().describe("Issue title"),
@@ -158,46 +159,36 @@ export const createGitHubIssue = withGitHubAccess(
         .array(z.string())
         .optional()
         .describe("Labels to add to the issue"),
+      userId: z.string().optional().describe("Auto-filled by system"),
     }),
-    execute: async ({ repo, title, body, labels }) => {
-      const accessToken = getAccessTokenFromTokenVault();
-
-      addAuditEntry({
-        action: `Create GitHub issue in ${repo}`,
-        service: "github",
-        scopes: ["repo"],
-        status: "success",
-        details: `Created issue: "${title}" in ${repo}`,
-        riskLevel: "medium",
-        stepUpRequired: false,
-      });
-
-      const response = await fetch(
-        `https://api.github.com/repos/${repo}/issues`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            Accept: "application/vnd.github.v3+json",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ title, body, labels }),
-        }
+    execute: async ({ repo, title, body, labels, userId }) => {
+      // Step-up auth: queue action for approval instead of executing directly
+      const pendingAction = createPendingAction(
+        "createGitHubIssue",
+        { repo, title, body, labels },
+        userId || "unknown",
+        `Create issue "${title}" in ${repo}`,
+        "github",
+        "medium"
       );
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        return {
-          error: `Failed to create issue: ${response.status} - ${errorText}`,
-        };
-      }
+      addAuditEntry({
+        action: `Step-up required: Create GitHub issue in ${repo}`,
+        service: "github",
+        scopes: ["repo"],
+        status: "pending_approval",
+        details: `Write operation queued for approval: "${title}" in ${repo}`,
+        riskLevel: "medium",
+        stepUpRequired: true,
+      });
 
-      const issue = await response.json();
       return {
-        number: issue.number,
-        title: issue.title,
-        url: issue.html_url,
-        state: issue.state,
+        requiresApproval: true,
+        pendingActionId: pendingAction.id,
+        action: "createGitHubIssue",
+        description: `Create issue "${title}" in ${repo}`,
+        details: { repo, title, body, labels },
+        message: "This write operation requires your approval. Please confirm or deny this action.",
       };
     },
   })
