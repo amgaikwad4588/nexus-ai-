@@ -37,6 +37,9 @@ const toolIcons: Record<string, { icon: typeof Mail; color: string; service: str
   listSlackChannels: { icon: MessageSquare, color: "text-purple-400", service: "Slack" },
   sendSlackMessage: { icon: MessageSquare, color: "text-purple-400", service: "Slack" },
   getSlackChannelHistory: { icon: MessageSquare, color: "text-purple-400", service: "Slack" },
+  getDiscordProfile: { icon: MessageSquare, color: "text-indigo-400", service: "Discord" },
+  listDiscordGuilds: { icon: MessageSquare, color: "text-indigo-400", service: "Discord" },
+  getDiscordGuildMember: { icon: MessageSquare, color: "text-indigo-400", service: "Discord" },
 };
 
 const suggestedPrompts = [
@@ -44,7 +47,7 @@ const suggestedPrompts = [
   "List my recent GitHub repositories",
   "Check my Google Calendar for tomorrow",
   "Show my Slack channels",
-  "Summarize my unread emails and post to Slack",
+  "Show my Discord servers",
   "What GitHub issues are assigned to me?",
 ];
 

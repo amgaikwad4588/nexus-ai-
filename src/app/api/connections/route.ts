@@ -22,6 +22,24 @@ const SERVICES: ConnectedService[] = [
     scopes: ["repo", "read:user", "read:org"],
     tokenStatus: "not_connected",
   },
+  {
+    id: "slack",
+    name: "Slack",
+    connection: "slack-custom",
+    icon: "slack",
+    connected: false,
+    scopes: ["channels:read", "chat:write", "channels:history", "users:read"],
+    tokenStatus: "not_connected",
+  },
+  {
+    id: "discord",
+    name: "Discord",
+    connection: "discord",
+    icon: "discord",
+    connected: false,
+    scopes: ["identify", "guilds", "guilds.members.read"],
+    tokenStatus: "not_connected",
+  },
 ];
 
 interface ConnectedAccount {
@@ -74,6 +92,18 @@ export async function GET() {
   }
 
   const services = SERVICES.map((service) => {
+    // Slack uses a bot token — always connected if configured
+    if (service.id === "slack") {
+      const hasBotToken = !!process.env.SLACK_BOT_TOKEN;
+      return {
+        ...service,
+        connected: hasBotToken,
+        tokenStatus: hasBotToken
+          ? ("active" as const)
+          : ("not_connected" as const),
+      };
+    }
+
     const account = connectedAccounts.find(
       (a) => a.connection === service.connection
     );

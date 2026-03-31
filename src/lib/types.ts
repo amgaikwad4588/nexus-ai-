@@ -2,7 +2,7 @@ export interface AuditEntry {
   id: string;
   timestamp: string;
   action: string;
-  service: "google" | "github" | "slack" | "system";
+  service: "google" | "github" | "slack" | "discord" | "system";
   scopes: string[];
   status: "success" | "failed" | "pending_approval" | "denied";
   details: string;

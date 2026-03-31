@@ -165,8 +165,8 @@ async function executeAction(
   }
 
   if (toolName === "sendSlackMessage") {
-    const accessToken = await getAccessTokenForService("slack", refreshToken);
-    if (!accessToken) return { error: "Failed to get Slack access token" };
+    const accessToken = process.env.SLACK_BOT_TOKEN;
+    if (!accessToken) return { error: "SLACK_BOT_TOKEN not configured" };
 
     const { channel, message } = args as { channel: string; message: string };
 

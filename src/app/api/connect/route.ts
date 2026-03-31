@@ -12,6 +12,8 @@ const CONNECTION_SCOPES: Record<string, string[]> = {
     "https://www.googleapis.com/auth/calendar.readonly",
   ],
   github: ["repo", "read:user", "read:org"],
+  "slack-custom": ["channels:read", "chat:write", "channels:history", "users:read"],
+  discord: ["identify", "guilds", "guilds.members.read"],
 };
 
 export async function GET(req: Request) {

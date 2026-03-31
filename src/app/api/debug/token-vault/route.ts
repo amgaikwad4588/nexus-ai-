@@ -31,7 +31,7 @@ export async function GET() {
   const clientId = process.env.AUTH0_AI_CLIENT_ID || process.env.AUTH0_CLIENT_ID;
   const clientSecret = process.env.AUTH0_AI_CLIENT_SECRET || process.env.AUTH0_CLIENT_SECRET;
 
-  const connections = ["google-oauth2", "github", "sign-in-with-slack"];
+  const connections = ["google-oauth2", "github", "slack-custom", "discord"];
   const exchangeResults: Record<string, unknown> = {};
 
   if (session.tokenSet.refreshToken) {

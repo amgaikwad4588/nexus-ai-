@@ -4,11 +4,12 @@
 const connectionMap: Record<string, string> = {
   github: "github",
   google: "google-oauth2",
-  slack: "sign-in-with-slack",
+  slack: "slack-custom",
+  discord: "discord",
 };
 
 export async function getAccessTokenForService(
-  service: "github" | "google" | "slack",
+  service: "github" | "google" | "slack" | "discord",
   refreshToken: string
 ): Promise<string | null> {
   const domain = process.env.AUTH0_AI_DOMAIN || process.env.AUTH0_DOMAIN;

@@ -1,166 +1,163 @@
 import { tool } from "ai";
 import { z } from "zod";
-import { getAccessTokenFromTokenVault } from "@auth0/ai-vercel";
-import { withSlackAccess } from "@/lib/auth0-ai";
 import { addAuditEntry } from "@/lib/audit";
 import { createPendingAction } from "@/lib/step-up";
 
-export const listSlackChannels = withSlackAccess(
-  tool({
-    description:
-      "List Slack channels the user has access to in their workspace.",
-    inputSchema: z.object({
-      limit: z
-        .number()
-        .optional()
-        .default(20)
-        .describe("Maximum number of channels to return"),
-    }),
-    execute: async ({ limit }) => {
-      const accessToken = getAccessTokenFromTokenVault();
+function getSlackBotToken(): string {
+  const token = process.env.SLACK_BOT_TOKEN;
+  if (!token) throw new Error("SLACK_BOT_TOKEN not configured");
+  return token;
+}
 
-      addAuditEntry({
-        action: "List Slack channels",
-        service: "slack",
-        scopes: ["channels:read"],
-        status: "success",
-        details: `Listed up to ${limit} Slack channels`,
-        riskLevel: "low",
-        stepUpRequired: false,
-      });
+export const listSlackChannels = tool({
+  description:
+    "List Slack channels the user has access to in their workspace.",
+  inputSchema: z.object({
+    limit: z
+      .number()
+      .optional()
+      .default(20)
+      .describe("Maximum number of channels to return"),
+  }),
+  execute: async ({ limit }) => {
+    const accessToken = getSlackBotToken();
 
-      const response = await fetch(
-        `https://slack.com/api/conversations.list?limit=${limit}&types=public_channel,private_channel`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
+    addAuditEntry({
+      action: "List Slack channels",
+      service: "slack",
+      scopes: ["channels:read"],
+      status: "success",
+      details: `Listed up to ${limit} Slack channels`,
+      riskLevel: "low",
+      stepUpRequired: false,
+    });
 
-      if (!response.ok) {
-        return { error: `Slack API error: ${response.status}`, channels: [] };
+    const response = await fetch(
+      `https://slack.com/api/conversations.list?limit=${limit}&types=public_channel,private_channel`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
       }
+    );
 
-      const data = await response.json();
-      if (!data.ok) {
-        return { error: data.error || "Slack API error", channels: [] };
+    if (!response.ok) {
+      return { error: `Slack API error: ${response.status}`, channels: [] };
+    }
+
+    const data = await response.json();
+    if (!data.ok) {
+      return { error: data.error || "Slack API error", channels: [] };
+    }
+
+    return {
+      channels: (data.channels || []).map(
+        (ch: {
+          id: string;
+          name: string;
+          purpose: { value: string };
+          num_members: number;
+          is_private: boolean;
+        }) => ({
+          id: ch.id,
+          name: ch.name,
+          purpose: ch.purpose?.value || "",
+          memberCount: ch.num_members,
+          isPrivate: ch.is_private,
+        })
+      ),
+    };
+  },
+});
+
+export const sendSlackMessage = tool({
+  description:
+    "Send a message to a Slack channel. This is a WRITE action that requires step-up authentication. The action will be queued for user approval before execution.",
+  inputSchema: z.object({
+    channel: z
+      .string()
+      .describe("Channel name (without #) or channel ID"),
+    message: z.string().describe("The message text to send"),
+    userId: z.string().optional().describe("Auto-filled by system"),
+  }),
+  execute: async ({ channel, message, userId }) => {
+    const pendingAction = createPendingAction(
+      "sendSlackMessage",
+      { channel, message },
+      userId || "unknown",
+      `Send message to #${channel}: "${message.slice(0, 50)}..."`,
+      "slack",
+      "medium"
+    );
+
+    addAuditEntry({
+      action: `Step-up required: Send Slack message to #${channel}`,
+      service: "slack",
+      scopes: ["chat:write"],
+      status: "pending_approval",
+      details: `Write operation queued for approval: message to #${channel}`,
+      riskLevel: "medium",
+      stepUpRequired: true,
+    });
+
+    return {
+      requiresApproval: true,
+      pendingActionId: pendingAction.id,
+      action: "sendSlackMessage",
+      description: `Send message to #${channel}`,
+      details: { channel, message: message.slice(0, 200) },
+      message: "This write operation requires your approval. Please confirm or deny this action.",
+    };
+  },
+});
+
+export const getSlackChannelHistory = tool({
+  description:
+    "Get recent messages from a Slack channel to understand the conversation context.",
+  inputSchema: z.object({
+    channel: z.string().describe("Channel ID"),
+    limit: z
+      .number()
+      .optional()
+      .default(10)
+      .describe("Number of messages to fetch"),
+  }),
+  execute: async ({ channel, limit }) => {
+    const accessToken = getSlackBotToken();
+
+    addAuditEntry({
+      action: `Read Slack channel history`,
+      service: "slack",
+      scopes: ["channels:history"],
+      status: "success",
+      details: `Read ${limit} messages from channel ${channel}`,
+      riskLevel: "low",
+      stepUpRequired: false,
+    });
+
+    const response = await fetch(
+      `https://slack.com/api/conversations.history?channel=${channel}&limit=${limit}`,
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
       }
+    );
 
-      return {
-        channels: (data.channels || []).map(
-          (ch: {
-            id: string;
-            name: string;
-            purpose: { value: string };
-            num_members: number;
-            is_private: boolean;
-          }) => ({
-            id: ch.id,
-            name: ch.name,
-            purpose: ch.purpose?.value || "",
-            memberCount: ch.num_members,
-            isPrivate: ch.is_private,
-          })
-        ),
-      };
-    },
-  })
-);
+    if (!response.ok) {
+      return { error: `Slack API error: ${response.status}`, messages: [] };
+    }
 
-export const sendSlackMessage = withSlackAccess(
-  tool({
-    description:
-      "Send a message to a Slack channel. This is a WRITE action that requires step-up authentication. The action will be queued for user approval before execution.",
-    inputSchema: z.object({
-      channel: z
-        .string()
-        .describe("Channel name (without #) or channel ID"),
-      message: z.string().describe("The message text to send"),
-      userId: z.string().optional().describe("Auto-filled by system"),
-    }),
-    execute: async ({ channel, message, userId }) => {
-      // Step-up auth: queue action for approval instead of executing directly
-      const pendingAction = createPendingAction(
-        "sendSlackMessage",
-        { channel, message },
-        userId || "unknown",
-        `Send message to #${channel}: "${message.slice(0, 50)}..."`,
-        "slack",
-        "medium"
-      );
+    const data = await response.json();
+    if (!data.ok) {
+      return { error: data.error, messages: [] };
+    }
 
-      addAuditEntry({
-        action: `Step-up required: Send Slack message to #${channel}`,
-        service: "slack",
-        scopes: ["chat:write"],
-        status: "pending_approval",
-        details: `Write operation queued for approval: message to #${channel}`,
-        riskLevel: "medium",
-        stepUpRequired: true,
-      });
-
-      return {
-        requiresApproval: true,
-        pendingActionId: pendingAction.id,
-        action: "sendSlackMessage",
-        description: `Send message to #${channel}`,
-        details: { channel, message: message.slice(0, 200) },
-        message: "This write operation requires your approval. Please confirm or deny this action.",
-      };
-    },
-  })
-);
-
-export const getSlackChannelHistory = withSlackAccess(
-  tool({
-    description:
-      "Get recent messages from a Slack channel to understand the conversation context.",
-    inputSchema: z.object({
-      channel: z.string().describe("Channel ID"),
-      limit: z
-        .number()
-        .optional()
-        .default(10)
-        .describe("Number of messages to fetch"),
-    }),
-    execute: async ({ channel, limit }) => {
-      const accessToken = getAccessTokenFromTokenVault();
-
-      addAuditEntry({
-        action: `Read Slack channel history`,
-        service: "slack",
-        scopes: ["channels:history"],
-        status: "success",
-        details: `Read ${limit} messages from channel ${channel}`,
-        riskLevel: "low",
-        stepUpRequired: false,
-      });
-
-      const response = await fetch(
-        `https://slack.com/api/conversations.history?channel=${channel}&limit=${limit}`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
-
-      if (!response.ok) {
-        return { error: `Slack API error: ${response.status}`, messages: [] };
-      }
-
-      const data = await response.json();
-      if (!data.ok) {
-        return { error: data.error, messages: [] };
-      }
-
-      return {
-        messages: (data.messages || []).map(
-          (msg: { text: string; user: string; ts: string; type: string }) => ({
-            text: msg.text,
-            user: msg.user,
-            timestamp: msg.ts,
-            type: msg.type,
-          })
-        ),
-      };
-    },
-  })
-);
+    return {
+      messages: (data.messages || []).map(
+        (msg: { text: string; user: string; ts: string; type: string }) => ({
+          text: msg.text,
+          user: msg.user,
+          timestamp: msg.ts,
+          type: msg.type,
+        })
+      ),
+    };
+  },
+});

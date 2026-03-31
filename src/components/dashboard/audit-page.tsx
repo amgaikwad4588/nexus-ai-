@@ -32,6 +32,7 @@ const serviceIcons: Record<string, { icon: typeof Mail; color: string }> = {
   google: { icon: Mail, color: "text-red-400" },
   github: { icon: GitBranch, color: "text-white" },
   slack: { icon: MessageSquare, color: "text-purple-400" },
+  discord: { icon: MessageSquare, color: "text-indigo-400" },
   system: { icon: Shield, color: "text-primary" },
 };
 
@@ -193,7 +194,7 @@ export function AuditPage() {
             >
               All
             </Button>
-            {["google", "github", "slack"].map((service) => {
+            {["google", "github", "slack", "discord"].map((service) => {
               const config = serviceIcons[service];
               const Icon = config.icon;
               return (

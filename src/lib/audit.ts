@@ -25,6 +25,7 @@ export function getAuditStats() {
     google: auditLog.filter((e) => e.service === "google").length,
     github: auditLog.filter((e) => e.service === "github").length,
     slack: auditLog.filter((e) => e.service === "slack").length,
+    discord: auditLog.filter((e) => e.service === "discord").length,
     system: auditLog.filter((e) => e.service === "system").length,
   };
   const byStatus = {

@@ -30,8 +30,8 @@ export const withGitHubAccess = auth0AI.withTokenVault({
   refreshToken: getRefreshToken,
 });
 
-export const withSlackAccess = auth0AI.withTokenVault({
-  connection: "sign-in-with-slack",
-  scopes: ["channels:read", "chat:write", "users:read", "channels:history"],
+export const withDiscordAccess = auth0AI.withTokenVault({
+  connection: "discord",
+  scopes: ["identify", "guilds", "guilds.members.read"],
   refreshToken: getRefreshToken,
 });

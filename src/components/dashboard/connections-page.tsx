@@ -72,6 +72,18 @@ const serviceConfig: Record<
       "Read channel history",
     ],
   },
+  discord: {
+    icon: MessageSquare,
+    color: "text-indigo-400",
+    bgColor: "bg-indigo-400/10",
+    description:
+      "Access Discord servers, view profile, and check membership details via Token Vault.",
+    capabilities: [
+      "View profile",
+      "List servers",
+      "Check membership",
+    ],
+  },
 };
 
 const fadeUp = {
@@ -112,6 +124,24 @@ export function ConnectionsPage() {
           icon: "github",
           connected: false,
           scopes: ["repo", "read:user"],
+          tokenStatus: "not_connected",
+        },
+        {
+          id: "slack",
+          name: "Slack",
+          connection: "slack-custom",
+          icon: "slack",
+          connected: false,
+          scopes: ["channels:read", "chat:write", "channels:history", "users:read"],
+          tokenStatus: "not_connected",
+        },
+        {
+          id: "discord",
+          name: "Discord",
+          connection: "discord",
+          icon: "discord",
+          connected: false,
+          scopes: ["identify", "guilds", "guilds.members.read"],
           tokenStatus: "not_connected",
         },
       ]);
@@ -300,7 +330,7 @@ export function ConnectionsPage() {
                     </div>
 
                     {/* Connect / Disconnect Button */}
-                    {!service.connected && (
+                    {!service.connected && service.id !== "slack" && (
                       <a
                         href={`/api/connect?connection=${service.connection}`}
                       >
@@ -311,7 +341,19 @@ export function ConnectionsPage() {
                       </a>
                     )}
 
-                    {service.connected && (
+                    {!service.connected && service.id === "slack" && (
+                      <p className="text-xs text-muted-foreground">
+                        Slack uses a workspace bot token. Configure SLACK_BOT_TOKEN in environment variables.
+                      </p>
+                    )}
+
+                    {service.connected && service.id === "slack" && (
+                      <p className="text-xs text-green-400/70">
+                        Connected via Bot Token
+                      </p>
+                    )}
+
+                    {service.connected && service.id !== "slack" && (
                       <div className="flex items-center justify-between">
                         {service.lastUsed && (
                           <p className="text-[10px] text-muted-foreground">
@@ -341,55 +383,6 @@ export function ConnectionsPage() {
           );
         })}
 
-        {/* Slack - Coming Soon */}
-        <motion.div variants={fadeUp}>
-          <Card className="opacity-60">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-purple-400/10 flex items-center justify-center">
-                    <MessageSquare className="w-6 h-6 text-purple-400" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg">Slack</CardTitle>
-                    <CardDescription className="text-xs">
-                      Access Slack channels to read messages, send notifications, and manage conversations.
-                    </CardDescription>
-                  </div>
-                </div>
-                <Badge
-                  variant="outline"
-                  className="text-yellow-400 border-yellow-400/30 bg-yellow-400/10"
-                >
-                  Coming Soon
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground mb-2">
-                    Planned Capabilities
-                  </p>
-                  <ul className="space-y-1">
-                    {["List channels", "Send messages", "Read channel history"].map((cap, i) => (
-                      <li
-                        key={i}
-                        className="text-xs text-muted-foreground flex items-center gap-2"
-                      >
-                        <div className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30" />
-                        {cap}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <Button size="sm" className="w-full" disabled>
-                  Coming Soon
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
       </motion.div>
     </div>
   );

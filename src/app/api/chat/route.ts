@@ -14,6 +14,11 @@ import {
   sendSlackMessage,
   getSlackChannelHistory,
 } from "@/lib/tools/slack";
+import {
+  getDiscordProfile,
+  listDiscordGuilds,
+  getDiscordGuildMember,
+} from "@/lib/tools/discord";
 
 export async function POST(req: Request) {
   try {
@@ -40,6 +45,9 @@ export async function POST(req: Request) {
       listSlackChannels,
       sendSlackMessage,
       getSlackChannelHistory,
+      getDiscordProfile,
+      listDiscordGuilds,
+      getDiscordGuildMember,
     };
 
     const result = streamText({
@@ -50,6 +58,7 @@ Your capabilities:
 - **Google**: Search Gmail, check Google Calendar events and availability
 - **GitHub**: List repositories, view issues, create issues, get profile info
 - **Slack**: List channels, send messages, read channel history
+- **Discord**: View profile, list servers, check membership details
 
 Security Model — Step-Up Authentication:
 - **Read operations** (searching, listing, viewing) execute immediately with scoped tokens.
