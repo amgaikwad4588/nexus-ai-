@@ -2,6 +2,8 @@ import { streamText, stepCountIs, convertToModelMessages } from "ai";
 import { google } from "@ai-sdk/google";
 import { setAIContext } from "@auth0/ai-vercel";
 import { auth0 } from "@/lib/auth0";
+import { checkToolPermission, logPermissionDenied } from "@/lib/permissions";
+import { evaluateRisk } from "@/lib/risk-engine";
 import { searchGmail, checkCalendar } from "@/lib/tools/google";
 import {
   listGitHubRepos,
@@ -20,6 +22,52 @@ import {
   getDiscordGuildMember,
 } from "@/lib/tools/discord";
 
+/**
+ * Wrap a tool so that its execute function is gated by:
+ *  1. The centralized Risk Engine (evaluates risk → EXECUTE / STEP_UP / REAUTH / BLOCK)
+ *  2. A server-side permission check (service connected? scopes enabled?)
+ *
+ * This ensures every tool invocation flows through the risk engine before anything runs.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function withRiskEngine<T extends Record<string, any>>(
+  toolName: string,
+  userId: string,
+  originalTool: T
+): T {
+  if (!originalTool.execute) return originalTool;
+
+  const originalExecute = originalTool.execute;
+
+  return {
+    ...originalTool,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    execute: async (...args: any[]) => {
+      // ── Step 1: Risk Engine evaluation ──
+      const riskEval = evaluateRisk(toolName);
+
+      if (riskEval.decision === "BLOCK") {
+        return {
+          error: riskEval.reason,
+          blocked: true,
+          riskLevel: riskEval.risk,
+          riskDecision: riskEval.decision,
+        };
+      }
+
+      // ── Step 2: Permission check (service connected? scopes enabled?) ──
+      const check = await checkToolPermission(toolName, userId);
+      if (!check.allowed) {
+        logPermissionDenied(toolName, check);
+        return { error: check.reason, permissionDenied: true };
+      }
+
+      // ── Step 3: Execute (STEP_UP and REAUTH are handled inside each tool's execute) ──
+      return originalExecute(...args);
+    },
+  };
+}
+
 export async function POST(req: Request) {
   try {
     const session = await auth0.getSession();
@@ -28,14 +76,16 @@ export async function POST(req: Request) {
     }
 
     const { messages } = await req.json();
-    const threadID = `nexus-${session.user.sub}-${Date.now()}`;
+    const userId = session.user.sub;
+    const threadID = `nexus-${userId}-${Date.now()}`;
 
     setAIContext({ threadID });
 
     const model = google("gemini-3.1-flash-lite-preview");
     const modelMessages = await convertToModelMessages(messages);
 
-    const tools = {
+    // Wrap every tool with server-side permission enforcement
+    const rawTools = {
       searchGmail,
       checkCalendar,
       listGitHubRepos,
@@ -50,6 +100,14 @@ export async function POST(req: Request) {
       getDiscordGuildMember,
     };
 
+    // Route every tool through the centralized Risk Engine + permission check
+    const tools = Object.fromEntries(
+      Object.entries(rawTools).map(([name, t]) => [
+        name,
+        withRiskEngine(name, userId, t),
+      ])
+    ) as typeof rawTools;
+
     const result = streamText({
       model,
       system: `You are Nexus, a powerful AI agent that helps users manage their digital life across Google, GitHub, and Slack. You have secure access to the user's connected services through Auth0 Token Vault.
@@ -60,11 +118,14 @@ Your capabilities:
 - **Slack**: List channels, send messages, read channel history
 - **Discord**: View profile, list servers, check membership details
 
-Security Model — Step-Up Authentication:
-- **Read operations** (searching, listing, viewing) execute immediately with scoped tokens.
-- **Write operations** (createGitHubIssue, sendSlackMessage) are protected by step-up authentication. When you call a write tool, it will NOT execute immediately. Instead, it queues the action for user approval and returns a requiresApproval response.
-- When you receive a requiresApproval response from a write tool, tell the user that the action has been queued and they need to approve it using the authorization buttons shown in the chat. Do NOT retry the tool call.
-- After the user approves or denies, the result will be handled automatically by the UI.
+Security Model — Centralized Risk Engine:
+Every tool invocation passes through a risk engine that evaluates the action and enforces risk-based authorization:
+- **LOW risk** (read operations) → Auto-executed with scoped tokens. No user friction.
+- **MEDIUM risk** (write operations like createGitHubIssue, sendSlackMessage) → Step-up authentication required. The action is queued for user approval.
+- **HIGH risk** (destructive/bulk operations) → Re-authentication required. The user must re-verify their identity before execution.
+- **UNKNOWN tools** → Blocked by default (fail-closed security).
+
+When you receive a requiresApproval response from a tool, tell the user the action has been queued and they need to approve it using the authorization buttons shown in the chat. Do NOT retry the tool call.
 
 Guidelines:
 - Always be helpful, concise, and transparent about what actions you're taking

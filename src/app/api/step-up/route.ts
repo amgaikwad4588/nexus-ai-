@@ -4,9 +4,12 @@ import {
   approveAction,
   denyAction,
   markExecuted,
+  hasValidStepUpSession,
 } from "@/lib/step-up";
 import { addAuditEntry } from "@/lib/audit";
 import { getAccessTokenForService } from "@/lib/token-exchange";
+import { checkToolPermission, logPermissionDenied } from "@/lib/permissions";
+import { evaluateRisk } from "@/lib/risk-engine";
 
 // POST /api/step-up - Approve or deny a pending action, then execute if approved
 export async function POST(req: Request) {
@@ -60,6 +63,43 @@ export async function POST(req: Request) {
       riskLevel: action.riskLevel,
       stepUpRequired: true,
     });
+
+    // ── Risk Engine re-evaluation before execution (even after approval) ──
+    const riskEval = evaluateRisk(action.toolName);
+
+    // High-risk actions require a valid step-up session (re-authentication)
+    if (riskEval.decision === "REAUTH" && !hasValidStepUpSession(userId)) {
+      addAuditEntry({
+        action: `Re-auth required: ${action.description}`,
+        service: action.service,
+        scopes: [],
+        status: "denied",
+        details: `High-risk action requires re-authentication — no valid step-up session`,
+        riskLevel: "high",
+        stepUpRequired: true,
+      });
+      return Response.json(
+        { status: "reauth_required", error: "High-risk action requires re-authentication. Please verify your identity." },
+        { status: 403 }
+      );
+    }
+
+    if (riskEval.decision === "BLOCK") {
+      return Response.json(
+        { status: "blocked", error: riskEval.reason },
+        { status: 403 }
+      );
+    }
+
+    // Server-side permission check before execution (even after approval)
+    const permCheck = await checkToolPermission(action.toolName, userId);
+    if (!permCheck.allowed) {
+      logPermissionDenied(action.toolName, permCheck);
+      return Response.json(
+        { status: "error", error: permCheck.reason, permissionDenied: true },
+        { status: 403 }
+      );
+    }
 
     // Execute the approved action
     const result = await executeAction(action.toolName, action.args, session);

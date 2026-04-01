@@ -150,9 +150,9 @@ export const getGitHubIssues = withGitHubAccess(
 export const createGitHubIssue = withGitHubAccess(
   tool({
     description:
-      "Create a new issue in a GitHub repository. This is a WRITE action that requires step-up authentication. The action will be queued for user approval before execution.",
+      "Create a new issue in a GitHub repository. This is a WRITE action that requires step-up authentication. The action will be queued for user approval before execution. IMPORTANT: The repo MUST be in 'owner/repo' format (e.g. 'amgaikwad4588/nexus-ai-agent'). If the user gives only a repo name without the owner, first call listGitHubRepos to find the correct full name.",
     inputSchema: z.object({
-      repo: z.string().describe("Repository in 'owner/repo' format"),
+      repo: z.string().describe("Repository in 'owner/repo' format (e.g. 'amgaikwad4588/nexus-ai-agent'). MUST include the owner prefix."),
       title: z.string().describe("Issue title"),
       body: z.string().optional().describe("Issue body/description"),
       labels: z
@@ -162,7 +162,79 @@ export const createGitHubIssue = withGitHubAccess(
       userId: z.string().optional().describe("Auto-filled by system"),
     }),
     execute: async ({ repo, title, body, labels, userId }) => {
-      // Step-up auth: queue action for approval instead of executing directly
+      // ── Validate repo format: must be "owner/repo" ──
+      if (!repo.includes("/")) {
+        // Repo name is missing the owner — fetch user's repos to suggest matches
+        const accessToken = getAccessTokenFromTokenVault();
+        let suggestions: { fullName: string; description: string | null }[] = [];
+        try {
+          const res = await fetch(
+            `https://api.github.com/user/repos?per_page=100&sort=updated`,
+            { headers: { Authorization: `Bearer ${accessToken}`, Accept: "application/vnd.github.v3+json" } }
+          );
+          if (res.ok) {
+            const repos = await res.json();
+            suggestions = repos
+              .filter((r: { name: string }) => r.name.toLowerCase().includes(repo.toLowerCase()))
+              .slice(0, 5)
+              .map((r: { full_name: string; description: string | null }) => ({
+                fullName: r.full_name,
+                description: r.description,
+              }));
+          }
+        } catch { /* best-effort */ }
+
+        return {
+          error: `Invalid repo format: "${repo}". Repository must be in "owner/repo" format.`,
+          invalidRepo: true,
+          suggestions: suggestions.length > 0 ? suggestions : undefined,
+          hint: suggestions.length > 0
+            ? `Did you mean one of these? ${suggestions.map((s) => s.fullName).join(", ")}`
+            : `No repos found matching "${repo}". Use listGitHubRepos to see your repositories.`,
+        };
+      }
+
+      // ── Verify the repo exists before queuing ──
+      const accessToken = getAccessTokenFromTokenVault();
+      const repoCheck = await fetch(`https://api.github.com/repos/${repo}`, {
+        headers: { Authorization: `Bearer ${accessToken}`, Accept: "application/vnd.github.v3+json" },
+      });
+
+      if (!repoCheck.ok) {
+        // Repo not found — search for similar repos
+        let suggestions: { fullName: string; description: string | null }[] = [];
+        try {
+          const repoName = repo.split("/").pop() || repo;
+          const res = await fetch(
+            `https://api.github.com/user/repos?per_page=100&sort=updated`,
+            { headers: { Authorization: `Bearer ${accessToken}`, Accept: "application/vnd.github.v3+json" } }
+          );
+          if (res.ok) {
+            const repos = await res.json();
+            suggestions = repos
+              .filter((r: { name: string; full_name: string }) =>
+                r.name.toLowerCase().includes(repoName.toLowerCase()) ||
+                r.full_name.toLowerCase().includes(repoName.toLowerCase())
+              )
+              .slice(0, 5)
+              .map((r: { full_name: string; description: string | null }) => ({
+                fullName: r.full_name,
+                description: r.description,
+              }));
+          }
+        } catch { /* best-effort */ }
+
+        return {
+          error: `Repository "${repo}" not found (404).`,
+          invalidRepo: true,
+          suggestions: suggestions.length > 0 ? suggestions : undefined,
+          hint: suggestions.length > 0
+            ? `Did you mean one of these? ${suggestions.map((s) => s.fullName).join(", ")}`
+            : `No matching repos found. Use listGitHubRepos to see your repositories.`,
+        };
+      }
+
+      // ── Repo valid — queue for step-up approval ──
       const pendingAction = createPendingAction(
         "createGitHubIssue",
         { repo, title, body, labels },

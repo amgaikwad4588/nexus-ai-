@@ -61,11 +61,40 @@ interface ApprovalState {
 // Write tools that require step-up auth
 const WRITE_TOOLS = new Set(["createGitHubIssue", "sendSlackMessage"]);
 
+// Risk level styling configuration
+const RISK_STYLES = {
+  medium: {
+    border: "border-yellow-500/30",
+    bg: "bg-yellow-500/5",
+    headerColor: "text-yellow-400",
+    headerIcon: ShieldAlert,
+    headerText: "Step-Up Authentication Required",
+    badgeText: "write",
+    badgeClass: "text-yellow-400 border-yellow-400/30 bg-yellow-400/10",
+    approveText: "Authorize & Execute",
+    loadingText: "Verifying identity and executing action...",
+    loadingColor: "text-yellow-400",
+  },
+  high: {
+    border: "border-red-500/30",
+    bg: "bg-red-500/5",
+    headerColor: "text-red-400",
+    headerIcon: Shield,
+    headerText: "Re-Authentication Required — High Risk",
+    badgeText: "destructive",
+    badgeClass: "text-red-400 border-red-400/30 bg-red-400/10",
+    approveText: "Re-Authenticate & Execute",
+    loadingText: "Re-authenticating and executing action...",
+    loadingColor: "text-red-400",
+  },
+};
+
 function StepUpApprovalCard({
   pendingActionId,
   action,
   description,
   details,
+  riskLevel = "medium",
   approvalState,
   onApprove,
   onDeny,
@@ -74,6 +103,7 @@ function StepUpApprovalCard({
   action: string;
   description: string;
   details: Record<string, unknown>;
+  riskLevel?: "medium" | "high";
   approvalState?: ApprovalState;
   onApprove: (id: string) => void;
   onDeny: (id: string) => void;
@@ -82,20 +112,32 @@ function StepUpApprovalCard({
   const isGitHub = action === "createGitHubIssue";
   const Icon = isGitHub ? GitBranch : MessageSquare;
   const serviceColor = isGitHub ? "text-orange-400" : "text-purple-400";
+  const style = RISK_STYLES[riskLevel] || RISK_STYLES.medium;
+  const HeaderIcon = style.headerIcon;
 
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-4 space-y-3"
+      className={`rounded-lg border ${style.border} ${style.bg} p-4 space-y-3`}
     >
       {/* Header */}
       <div className="flex items-center gap-2">
-        <ShieldAlert className="w-4 h-4 text-yellow-400" />
-        <span className="text-xs font-semibold text-yellow-400 uppercase tracking-wide">
-          Step-Up Authentication Required
+        <HeaderIcon className={`w-4 h-4 ${style.headerColor}`} />
+        <span className={`text-xs font-semibold ${style.headerColor} uppercase tracking-wide`}>
+          {style.headerText}
         </span>
       </div>
+
+      {/* Risk level indicator for high-risk actions */}
+      {riskLevel === "high" && (
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-red-500/10 border border-red-500/20">
+          <Shield className="w-3.5 h-3.5 text-red-400" />
+          <span className="text-[11px] text-red-300">
+            This action is classified as <strong>high risk</strong> by the Risk Engine. Identity re-verification is required before execution.
+          </span>
+        </div>
+      )}
 
       {/* Action details */}
       <div className="flex items-start gap-3 p-3 rounded-md bg-accent/30 border border-border/30">
@@ -123,9 +165,9 @@ function StepUpApprovalCard({
             </p>
           )}
         </div>
-        <Badge variant="outline" className="text-xs text-yellow-400 border-yellow-400/30 bg-yellow-400/10 shrink-0">
+        <Badge variant="outline" className={`text-xs ${style.badgeClass} shrink-0`}>
           <AlertTriangle className="w-3 h-3 mr-1" />
-          write
+          {style.badgeText}
         </Badge>
       </div>
 
@@ -135,10 +177,10 @@ function StepUpApprovalCard({
           <Button
             size="sm"
             onClick={() => onApprove(pendingActionId)}
-            className="bg-green-600 hover:bg-green-700 text-white text-xs gap-1.5"
+            className={`${riskLevel === "high" ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"} text-white text-xs gap-1.5`}
           >
             <ShieldCheck className="w-3.5 h-3.5" />
-            Authorize & Execute
+            {style.approveText}
           </Button>
           <Button
             size="sm"
@@ -156,9 +198,9 @@ function StepUpApprovalCard({
       )}
 
       {state === "approving" && (
-        <div className="flex items-center gap-2 text-xs text-yellow-400">
+        <div className={`flex items-center gap-2 text-xs ${style.loadingColor}`}>
           <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          Verifying identity and executing action...
+          {style.loadingText}
         </div>
       )}
 
@@ -413,6 +455,7 @@ export function ChatInterface() {
                       output?.pendingActionId
                     ) {
                       const actionId = String(output.pendingActionId);
+                      const outputRiskLevel = output.riskLevel === "high" ? "high" : "medium";
                       return (
                         <StepUpApprovalCard
                           key={i}
@@ -420,6 +463,7 @@ export function ChatInterface() {
                           action={String(output.action || toolName)}
                           description={String(output.description || "")}
                           details={(output.details as Record<string, unknown>) || {}}
+                          riskLevel={outputRiskLevel}
                           approvalState={approvalStates[actionId]}
                           onApprove={handleApprove}
                           onDeny={handleDeny}
@@ -444,7 +488,7 @@ export function ChatInterface() {
                         </span>
                         {WRITE_TOOLS.has(toolName) && (
                           <Badge variant="outline" className="text-[10px] text-yellow-400 border-yellow-400/30 ml-1">
-                            write
+                            write · risk engine
                           </Badge>
                         )}
                         <span className="ml-auto">

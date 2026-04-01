@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
   Shield,
@@ -13,6 +14,7 @@ import {
   MessageSquare,
   ArrowRight,
   KeyRound,
+  Loader2,
 } from "lucide-react";
 import {
   Card,
@@ -139,6 +141,50 @@ const riskColors = {
 };
 
 export function PermissionsPage() {
+  const [permissions, setPermissions] = useState<Record<string, boolean>>({});
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState<string | null>(null);
+
+  // Fetch current permission states on mount
+  useEffect(() => {
+    fetch("/api/permissions")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.permissions) setPermissions(data.permissions);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Toggle a single scope
+  const toggleScope = useCallback(
+    async (scope: string) => {
+      const newValue = !permissions[scope];
+      // Optimistic update
+      setPermissions((prev) => ({ ...prev, [scope]: newValue }));
+      setSaving(scope);
+
+      try {
+        const res = await fetch("/api/permissions", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ permissions: { [scope]: newValue } }),
+        });
+        const data = await res.json();
+        if (data.permissions) setPermissions(data.permissions);
+      } catch (err) {
+        // Revert on failure
+        setPermissions((prev) => ({ ...prev, [scope]: !newValue }));
+        console.error("Failed to update permission:", err);
+      } finally {
+        setSaving(null);
+      }
+    },
+    [permissions]
+  );
+
+  const isEnabled = (scope: string) => permissions[scope] !== false; // default true
+
   const totalScopes = servicePermissions.reduce(
     (acc, s) => acc + s.scopes.length,
     0
@@ -148,9 +194,8 @@ export function PermissionsPage() {
     0
   );
   const writeScopes = totalScopes - readScopes;
-  const highRiskScopes = servicePermissions.reduce(
-    (acc, s) =>
-      acc + s.scopes.filter((sc) => sc.riskLevel === "high").length,
+  const enabledCount = servicePermissions.reduce(
+    (acc, s) => acc + s.scopes.filter((sc) => isEnabled(sc.scope)).length,
     0
   );
 
@@ -169,7 +214,8 @@ export function PermissionsPage() {
             Permission Dashboard
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Complete visibility into what your AI agent can access
+            Control exactly what your AI agent can access. Uncheck a scope to
+            block the AI from using it — even if the service is connected.
           </p>
         </motion.div>
 
@@ -196,10 +242,10 @@ export function PermissionsPage() {
                 color: "text-yellow-400",
               },
               {
-                label: "High Risk",
-                value: highRiskScopes,
-                icon: AlertTriangle,
-                color: "text-red-400",
+                label: "Enabled",
+                value: `${enabledCount}/${totalScopes}`,
+                icon: CheckCircle,
+                color: "text-emerald-400",
               },
             ].map((stat) => (
               <Card key={stat.label}>
@@ -225,12 +271,13 @@ export function PermissionsPage() {
                 <Shield className="w-5 h-5 text-primary mt-0.5 shrink-0" />
                 <div>
                   <p className="text-sm font-medium">
-                    Principle of Least Privilege
+                    Server-Side Enforcement
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Nexus requests only the minimum scopes needed for each
-                    operation. Tokens are exchanged on-demand via Auth0 Token
-                    Vault and never cached in our application.
+                    These toggles are enforced on the server before every tool
+                    call. If you uncheck a scope, the AI will be blocked from
+                    using any tool that requires it — the request never reaches
+                    the external API.
                   </p>
                 </div>
               </div>
@@ -279,75 +326,139 @@ export function PermissionsPage() {
           </Card>
         </motion.div>
 
-        {/* Service Permissions */}
-        {servicePermissions.map((service) => {
-          const Icon = service.icon;
-          return (
-            <motion.div key={service.id} variants={fadeUp}>
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`w-10 h-10 rounded-lg ${service.bgColor} flex items-center justify-center`}
-                    >
-                      <Icon className={`w-5 h-5 ${service.color}`} />
-                    </div>
-                    <div>
-                      <CardTitle className="text-base">
-                        {service.name}
-                      </CardTitle>
-                      <CardDescription className="text-xs">
-                        {service.scopes.length} scopes requested
-                      </CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {service.scopes.map((scope) => {
-                      const risk = riskColors[scope.riskLevel];
-                      return (
+        {/* Service Permissions with Toggles */}
+        {loading ? (
+          <motion.div variants={fadeUp} className="flex items-center justify-center py-12">
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            <span className="ml-2 text-sm text-muted-foreground">Loading permissions...</span>
+          </motion.div>
+        ) : (
+          servicePermissions.map((service) => {
+            const Icon = service.icon;
+            const allEnabled = service.scopes.every((s) => isEnabled(s.scope));
+            const noneEnabled = service.scopes.every((s) => !isEnabled(s.scope));
+            return (
+              <motion.div key={service.id} variants={fadeUp}>
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
                         <div
-                          key={scope.scope}
-                          className="flex items-center justify-between p-3 rounded-lg bg-accent/20 border border-border/30"
+                          className={`w-10 h-10 rounded-lg ${service.bgColor} flex items-center justify-center`}
                         >
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={`w-2 h-2 rounded-full ${
-                                scope.readWrite === "read"
-                                  ? "bg-green-400"
-                                  : "bg-yellow-400"
-                              }`}
-                            />
-                            <div>
-                              <p className="text-sm font-mono font-medium">
-                                {scope.scope}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {scope.description}
-                              </p>
+                          <Icon className={`w-5 h-5 ${service.color}`} />
+                        </div>
+                        <div>
+                          <CardTitle className="text-base">
+                            {service.name}
+                          </CardTitle>
+                          <CardDescription className="text-xs">
+                            {service.scopes.filter((s) => isEnabled(s.scope)).length}/{service.scopes.length} scopes enabled
+                          </CardDescription>
+                        </div>
+                      </div>
+                      {noneEnabled && (
+                        <Badge variant="outline" className="text-xs text-red-400 border-red-400/30 bg-red-400/10">
+                          All Blocked
+                        </Badge>
+                      )}
+                      {allEnabled && (
+                        <Badge variant="outline" className="text-xs text-green-400 border-green-400/30 bg-green-400/10">
+                          All Allowed
+                        </Badge>
+                      )}
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {service.scopes.map((scope) => {
+                        const risk = riskColors[scope.riskLevel];
+                        const enabled = isEnabled(scope.scope);
+                        const isSaving = saving === scope.scope;
+                        return (
+                          <div
+                            key={scope.scope}
+                            className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${
+                              enabled
+                                ? "bg-accent/20 border-border/30"
+                                : "bg-red-950/20 border-red-500/20 opacity-75"
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              {/* Toggle switch */}
+                              <button
+                                onClick={() => toggleScope(scope.scope)}
+                                disabled={isSaving}
+                                className="relative shrink-0 cursor-pointer"
+                                aria-label={`${enabled ? "Deny" : "Allow"} ${scope.scope}`}
+                              >
+                                {isSaving ? (
+                                  <div className="w-11 h-6 flex items-center justify-center">
+                                    <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                                  </div>
+                                ) : (
+                                  <div
+                                    className={`w-11 h-6 rounded-full transition-colors duration-200 ${
+                                      enabled
+                                        ? "bg-emerald-500"
+                                        : "bg-zinc-700"
+                                    }`}
+                                  >
+                                    <div
+                                      className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform duration-200 mt-0.5 ${
+                                        enabled ? "translate-x-5.5" : "translate-x-0.5"
+                                      }`}
+                                    />
+                                  </div>
+                                )}
+                              </button>
+                              <div
+                                className={`w-2 h-2 rounded-full ${
+                                  scope.readWrite === "read"
+                                    ? "bg-green-400"
+                                    : "bg-yellow-400"
+                                }`}
+                              />
+                              <div>
+                                <p className={`text-sm font-mono font-medium ${!enabled ? "line-through text-muted-foreground" : ""}`}>
+                                  {scope.scope}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {scope.description}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge
+                                variant="outline"
+                                className={`text-xs ${risk.text} ${risk.border} ${risk.bg}`}
+                              >
+                                {scope.riskLevel}
+                              </Badge>
+                              <Badge variant="secondary" className="text-xs">
+                                {scope.readWrite}
+                              </Badge>
+                              <Badge
+                                variant="outline"
+                                className={`text-xs ${
+                                  enabled
+                                    ? "text-emerald-400 border-emerald-400/30 bg-emerald-400/10"
+                                    : "text-red-400 border-red-400/30 bg-red-400/10"
+                                }`}
+                              >
+                                {enabled ? "Allowed" : "Denied"}
+                              </Badge>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Badge
-                              variant="outline"
-                              className={`text-xs ${risk.text} ${risk.border} ${risk.bg}`}
-                            >
-                              {scope.riskLevel}
-                            </Badge>
-                            <Badge variant="secondary" className="text-xs">
-                              {scope.readWrite}
-                            </Badge>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          );
-        })}
+                        );
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })
+        )}
 
         {/* Token Flow */}
         <motion.div variants={fadeUp}>
@@ -368,13 +479,13 @@ export function PermissionsPage() {
                   },
                   {
                     step: "2",
-                    title: "Risk Check",
-                    desc: "Write ops are flagged for step-up auth; reads proceed directly",
+                    title: "Permission Check",
+                    desc: "Server checks if user has enabled the required scopes",
                   },
                   {
                     step: "3",
-                    title: "Step-Up Auth",
-                    desc: "User approves or denies write operation via in-chat prompt",
+                    title: "Risk Check",
+                    desc: "Write ops are flagged for step-up auth; reads proceed directly",
                   },
                   {
                     step: "4",
