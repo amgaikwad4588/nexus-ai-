@@ -156,6 +156,7 @@ export default function DecryptedText({
   useEffect(() => {
     if (!isAnimating) return;
 
+    // eslint-disable-next-line prefer-const
     let interval: ReturnType<typeof setInterval>;
     let currentIteration = 0;
 

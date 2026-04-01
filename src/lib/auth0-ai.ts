@@ -10,9 +10,9 @@ export const auth0AI = new Auth0AI({
   },
 });
 
-async function getRefreshToken() {
+async function getRefreshToken(): Promise<string | undefined> {
   const session = await auth0.getSession();
-  return session?.tokenSet.refreshToken!;
+  return session?.tokenSet.refreshToken;
 }
 
 export const withGoogleAccess = auth0AI.withTokenVault({

@@ -2,6 +2,7 @@
 // Uses the same Auth0 Token Vault exchange as the AI SDK, but callable outside tool context
 
 import { addAuditEntry } from "@/lib/audit";
+import { createDPoPProof, getOrCreateDPoPKeyPair } from "@/lib/dpop";
 
 const connectionMap: Record<string, string> = {
   github: "github",
@@ -55,9 +56,16 @@ export async function getAccessTokenForService(
   }
 
   try {
-    const res = await fetch(`https://${domain}/oauth/token`, {
+    const tokenUrl = `https://${domain}/oauth/token`;
+    const dpopKey = await getOrCreateDPoPKeyPair();
+    const dpopProof = await createDPoPProof("POST", tokenUrl);
+
+    const res = await fetch(tokenUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "DPoP-Signature": dpopProof.header,
+      },
       body: JSON.stringify({
         grant_type:
           "urn:auth0:params:oauth:grant-type:token-exchange:federated-connection-access-token",
@@ -68,6 +76,8 @@ export async function getAccessTokenForService(
         connection,
         requested_token_type:
           "http://auth0.com/oauth/token-type/federated-connection-access-token",
+        dpop: dpopProof.proof,
+        dpop_jwk: dpopKey.publicKey,
       }),
     });
 

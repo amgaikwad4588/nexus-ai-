@@ -13,7 +13,6 @@ export function DotGridBackground() {
         proximity={100}
         shockRadius={130}
         shockStrength={10}
-        resistance={600}
         returnDuration={1.2}
       />
     </div>

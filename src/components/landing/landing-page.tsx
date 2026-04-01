@@ -43,7 +43,6 @@ export function LandingPage() {
           proximity={90}
           shockRadius={140}
           shockStrength={12}
-          resistance={550}
           returnDuration={1.1}
         />
       </div>

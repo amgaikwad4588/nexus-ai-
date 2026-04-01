@@ -173,6 +173,7 @@ const TextType = ({
   return createElement(
     Component,
     {
+      // eslint-disable-next-line react-hooks/refs
       ref: containerRef,
       className: `inline-block whitespace-pre-wrap tracking-tight ${className}`,
       ...props,

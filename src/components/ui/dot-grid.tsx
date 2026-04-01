@@ -1,18 +1,14 @@
 "use client";
 import React, { useRef, useEffect, useCallback, useMemo } from "react";
 import { gsap } from "gsap";
-import { InertiaPlugin } from "gsap/InertiaPlugin";
 
-gsap.registerPlugin(InertiaPlugin);
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const throttle = (func: any, limit: number) => {
+const throttle = (func: unknown, limit: number) => {
   let lastCall = 0;
   return function (this: unknown, ...args: unknown[]) {
     const now = performance.now();
     if (now - lastCall >= limit) {
       lastCall = now;
-      func.apply(this, args);
+      (func as (...args: unknown[]) => void).apply(this, args);
     }
   };
 };
@@ -22,7 +18,9 @@ interface Dot {
   cy: number;
   xOffset: number;
   yOffset: number;
-  _inertiaApplied: boolean;
+  targetXOffset: number;
+  targetYOffset: number;
+  _animating: boolean;
 }
 
 export interface DotGridProps {
@@ -35,7 +33,7 @@ export interface DotGridProps {
   shockRadius?: number;
   shockStrength?: number;
   maxSpeed?: number;
-  resistance?: number;
+  inertia?: number;
   returnDuration?: number;
   className?: string;
   style?: React.CSSProperties;
@@ -61,7 +59,7 @@ const DotGrid: React.FC<DotGridProps> = ({
   shockRadius = 100,
   shockStrength = 5,
   maxSpeed = 5000,
-  resistance = 750,
+  inertia = 0.85,
   returnDuration = 1.5,
   className = "",
   style,
@@ -124,11 +122,39 @@ const DotGrid: React.FC<DotGridProps> = ({
       for (let x = 0; x < cols; x++) {
         const cx = startX + x * cell;
         const cy = startY + y * cell;
-        dots.push({ cx, cy, xOffset: 0, yOffset: 0, _inertiaApplied: false });
+        dots.push({
+          cx,
+          cy,
+          xOffset: 0,
+          yOffset: 0,
+          targetXOffset: 0,
+          targetYOffset: 0,
+          _animating: false,
+        });
       }
     }
     dotsRef.current = dots;
   }, [dotSize, gap]);
+
+  const animateDot = useCallback(
+    (dot: Dot, targetX: number, targetY: number, duration: number) => {
+      gsap.killTweensOf(dot, "xOffset yOffset");
+      dot.targetXOffset = targetX;
+      dot.targetYOffset = targetY;
+
+      gsap.to(dot, {
+        xOffset: targetX,
+        yOffset: targetY,
+        duration: duration,
+        ease: "elastic.out(1,0.75)",
+        onComplete: () => {
+          dot._animating = false;
+        },
+      });
+      dot._animating = true;
+    },
+    []
+  );
 
   useEffect(() => {
     if (!circlePath) return;
@@ -152,19 +178,19 @@ const DotGrid: React.FC<DotGridProps> = ({
         const dy = dot.cy - py;
         const dsq = dx * dx + dy * dy;
 
-        let style = baseColor;
+        let fillStyle = baseColor;
         if (dsq <= proxSq) {
           const dist = Math.sqrt(dsq);
           const t = 1 - dist / proximity;
           const r = Math.round(baseRgb.r + (activeRgb.r - baseRgb.r) * t);
           const g = Math.round(baseRgb.g + (activeRgb.g - baseRgb.g) * t);
           const b = Math.round(baseRgb.b + (activeRgb.b - baseRgb.b) * t);
-          style = `rgb(${r},${g},${b})`;
+          fillStyle = `rgb(${r},${g},${b})`;
         }
 
         ctx.save();
         ctx.translate(ox, oy);
-        ctx.fillStyle = style;
+        ctx.fillStyle = fillStyle;
         ctx.fill(circlePath);
         ctx.restore();
       }
@@ -220,23 +246,10 @@ const DotGrid: React.FC<DotGridProps> = ({
 
       for (const dot of dotsRef.current) {
         const dist = Math.hypot(dot.cx - pr.x, dot.cy - pr.y);
-        if (speed > speedTrigger && dist < proximity && !dot._inertiaApplied) {
-          dot._inertiaApplied = true;
-          gsap.killTweensOf(dot);
-          const pushX = dot.cx - pr.x + vx * 0.005;
-          const pushY = dot.cy - pr.y + vy * 0.005;
-          gsap.to(dot, {
-            inertia: { xOffset: pushX, yOffset: pushY, resistance },
-            onComplete: () => {
-              gsap.to(dot, {
-                xOffset: 0,
-                yOffset: 0,
-                duration: returnDuration,
-                ease: "elastic.out(1,0.75)",
-              });
-              dot._inertiaApplied = false;
-            },
-          });
+        if (speed > speedTrigger && dist < proximity && !dot._animating) {
+          const pushX = (dot.cx - pr.x) * inertia * 0.1 + vx * 0.002;
+          const pushY = (dot.cy - pr.y) * inertia * 0.1 + vy * 0.002;
+          animateDot(dot, pushX, pushY, returnDuration * 0.7);
         }
       }
     };
@@ -247,24 +260,11 @@ const DotGrid: React.FC<DotGridProps> = ({
       const cy = e.clientY - rect.top;
       for (const dot of dotsRef.current) {
         const dist = Math.hypot(dot.cx - cx, dot.cy - cy);
-        if (dist < shockRadius && !dot._inertiaApplied) {
-          dot._inertiaApplied = true;
-          gsap.killTweensOf(dot);
+        if (dist < shockRadius && !dot._animating) {
           const falloff = Math.max(0, 1 - dist / shockRadius);
           const pushX = (dot.cx - cx) * shockStrength * falloff;
           const pushY = (dot.cy - cy) * shockStrength * falloff;
-          gsap.to(dot, {
-            inertia: { xOffset: pushX, yOffset: pushY, resistance },
-            onComplete: () => {
-              gsap.to(dot, {
-                xOffset: 0,
-                yOffset: 0,
-                duration: returnDuration,
-                ease: "elastic.out(1,0.75)",
-              });
-              dot._inertiaApplied = false;
-            },
-          });
+          animateDot(dot, pushX, pushY, returnDuration);
         }
       }
     };
@@ -277,7 +277,7 @@ const DotGrid: React.FC<DotGridProps> = ({
       window.removeEventListener("mousemove", throttledMove);
       window.removeEventListener("click", onClick);
     };
-  }, [maxSpeed, speedTrigger, proximity, resistance, returnDuration, shockRadius, shockStrength]);
+  }, [maxSpeed, speedTrigger, proximity, inertia, returnDuration, shockRadius, shockStrength, animateDot]);
 
   return (
     <div

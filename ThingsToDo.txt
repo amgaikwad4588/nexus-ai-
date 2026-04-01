@@ -1,0 +1,58 @@
+# Nexus - Things To Do & Status
+
+## Completed
+
+### DPoP (Demonstrating Proof of Possession) Implementation
+- [x] Created `src/lib/dpop.ts` - EC P-256 key pair generation using Web Crypto API
+- [x] Created `src/lib/base64.ts` - Base64url encoding helper
+- [x] Created `src/hooks/use-dpop.ts` - Client-side hook for DPoP operations
+- [x] Modified `src/lib/token-exchange.ts` - Includes DPoP-Signature header and dpop/dpop_jwk params
+- [x] Created test page at `/test-dpop` - Verified DPoP working correctly
+- [x] Build passes successfully
+- [x] **Enabled DPoP in Auth0 Dashboard** ✓
+- [x] **Implemented key rotation mechanism** ✓
+  - Auto-rotation every 24 hours (configurable)
+  - `isKeyExpired()`, `getKeyAge()`, `getTimeUntilRotation()`
+  - `rotateDPoPKey()`, `getValidDPoPKey()`, `clearDPoPKeys()`
+- [x] **Test DPoP binding on API calls** ✓
+  - Updated test page with full flow testing
+  - Tests key generation, proof creation, rotation
+
+### Licensing Compliance
+- [x] Removed GSAP InertiaPlugin (paid Club GreenSock plugin)
+- [x] Implemented custom inertia effect using free GSAP easing (elastic.out)
+
+### UI Improvements
+- [x] Dashboard gradient background
+- [x] CreativeToggle component with glow effects, spring animations
+- [x] Animated icons in sidebar (hover bounce, rotate)
+- [x] Landing page: DotGrid background with interactive mouse effects
+- [x] Blue/cyan background lights behind features section
+- [x] Feature card hover animations with BlurText titles
+- [x] Button enhancements with glow effects
+- [x] Navbar blending with dot grid theme
+- [x] Terminal preview glow shadow enhancement
+- [x] Feature card subtle glow shadows
+
+## Working Features
+
+### DPoP Implementation
+- Key pair generation (EC P-256) ✓
+- DPoP JWT proof creation with htm/htu/jti/iat/ath claims ✓
+- DPoP-Signature header format (RFC compliant) ✓
+- Session storage for key persistence ✓
+- Automatic key rotation (24h default) ✓
+- Manual rotation via `rotateDPoPKey()` ✓
+- Key age and expiration tracking ✓
+
+### UI Components
+- DotGrid background with mouse parallax effects (free GSAP only)
+- Animated icons with hover interactions
+- BlurText reveal animations
+- Glow effects on buttons and cards
+
+## Pending / Submission Ready
+
+- [ ] Create demo video (3 min max)
+- [ ] Write Bonus Blog Post (~250 words)
+- [ ] Submit on Devpost
