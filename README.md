@@ -35,6 +35,7 @@ Built for the [**Authorized to Act: Auth0 for AI Agents Hackathon 2026**](https:
 
 AI agents are powerful, but giving them access to your accounts is terrifying. Most solutions store raw API tokens in environment variables or databases — one breach and everything is exposed. Users have no visibility into what the agent is doing, no way to scope its permissions, and no audit trail.
 
+
 ## Our Solution
 
 Nexus solves this by putting **Auth0 Token Vault** at the center of every interaction:
@@ -247,6 +248,64 @@ src/
 | Step-up auth | Write operations require explicit user approval before executing |
 | Full audit trail | Every action logged with timestamp, scopes, and status |
 | Dual auth patterns | Token Vault for services with refresh tokens; Bot tokens for services without (Slack) |
+
+---
+## Lessons Learned: Real Pain Points
+
+### 1. Account Linking vs. Connected Accounts
+Auth0’s **Account Linking** and **Connected Accounts** sound similar but are fundamentally different.
+
+- Account Linking → merges identities  
+- Connected Accounts → required for Token Vault  
+
+Using the wrong flow caused Token Vault to fail silently.
+
+**Takeaway:** Token Vault only works with **Connected Accounts + explicit enablement**.
+
+---
+
+### 2. Slack OAuth Limitation
+Slack OAuth does **not provide refresh tokens**, making Token Vault unusable.
+
+**Solution:** Switched to **Bot Token (`xoxb-`)** approach.
+
+**Insight:** Not all providers are compatible with Token Vault → leads to inconsistent auth patterns.
+
+---
+### 3. In-Memory Audit Logs
+Audit logs were initially stored in memory:
+- Lost on restart  
+- No traceability  
+
+**Fix:** Persistent JSON-based logging with:
+- `userId`, tool, risk, decision, timestamp  
+
+**Impact:** Improved **production readiness and accountability**.
+
+---
+
+### 4. DPoP Tradeoff
+DPoP (sender-constrained tokens) improves security but requires:
+- Tenant-level setup  
+- Risk of breaking working flow  
+
+**Decision:** Deferred for stability.
+
+**Insight:** Tradeoff between **advanced security vs system reliability**.
+
+---
+### 5. Natural Language vs API Requirements
+Users input:
+> create issue on nexus-ai-agent
+
+But GitHub requires:
+> owner/repo
+
+This caused failures after approval.
+
+**Fix:** Added **repo validation + suggestion before execution**.
+
+**Impact:** Better UX and fewer failed actions.
 
 ---
 
