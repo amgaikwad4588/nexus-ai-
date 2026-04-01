@@ -67,7 +67,7 @@ This isn't a checkbox — it's a decision layer baked into every API call.
 
 ### 3. Persistent Audit Trail — Full Visibility, Always
 Every action is logged to a persistent JSON store with `userId`, scopes used, risk classification, decision outcome, and timestamp. It survives server restarts. You can view raw JSON directly in the dashboard.
-
+- **Per-Tool Permission Toggles** — Let users selectively enable/disable individual tools, not just entire services
 ---
 
 ## How It Works
@@ -315,7 +315,6 @@ This is exactly the kind of developer experience gap that Token Vault needs to a
 ## What's Next
 
 - **DPoP / Sender-Constrained Tokens** — Planned enhancement, skipped pre-launch to avoid destabilizing the Token Vault end-to-end flow
-- **Per-Tool Permission Toggles** — Let users selectively enable/disable individual tools, not just entire services
 - **High-Risk Tool Expansion** — Add delete operations with full REAUTH flow
 - **Multi-Tenant Support** — Bring Nexus to teams, not just individual users
 
