@@ -13,7 +13,7 @@
 [![Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/)
 [![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge)](./LICENSE)
 
-<!-- [Live Demo](#) · [Watch the Video](#) · [Devpost](https://authorizedtoact.devpost.com/) · [GitHub](https://github.com/amgaikwad4588/nexus-ai-agent) -->
+[Live Demo](https://nexus-ai-alpha-seven.vercel.app/) · [Watch the Video](#) · [Devpost](https://authorizedtoact.devpost.com/) · [GitHub](https://github.com/amgaikwad4588/nexus-ai-agent)
 
 </div>
 
