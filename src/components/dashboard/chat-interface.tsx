@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import BlurText from "@/components/ui/blur-text";
 
 const toolIcons: Record<string, { icon: typeof Mail; color: string; service: string }> = {
   searchGmail: { icon: Mail, color: "text-red-400", service: "Google" },
@@ -370,12 +371,23 @@ export function ChatInterface() {
                 <Sparkles className="w-8 h-8 text-primary" />
               </div>
               <h2 className="text-xl font-bold mb-2">
-                What can I help you with?
+                <BlurText
+                  text="What can I help you with?"
+                  delay={80}
+                  animateBy="words"
+                  direction="top"
+                  className="justify-center"
+                />
               </h2>
-              <p className="text-sm text-muted-foreground max-w-md mx-auto mb-8">
-                I can access your Gmail, Google Calendar, GitHub repos, and
-                Slack channels. Every action is scoped and audited.
-              </p>
+              <div className="text-sm text-muted-foreground max-w-md mx-auto mb-8">
+                <BlurText
+                  text="I can access your Gmail, Google Calendar, GitHub repos, and Slack channels. Every action is scoped and audited."
+                  delay={40}
+                  animateBy="words"
+                  direction="top"
+                  className="justify-center"
+                />
+              </div>
 
               {/* Suggested prompts */}
               <AnimatePresence>
@@ -395,7 +407,15 @@ export function ChatInterface() {
                         }}
                         className="text-left text-xs p-3 rounded-lg border border-border/50 hover:bg-accent/50 transition-colors text-muted-foreground hover:text-foreground"
                       >
-                        {prompt}
+                        <BlurText
+                          text={prompt}
+                          delay={30}
+                          animateBy="words"
+                          direction="top"
+                          animationFrom={{ filter: "blur(6px)", opacity: 0, y: -10 }}
+                          animationTo={[{ filter: "blur(0px)", opacity: 1, y: 0 }]}
+                          stepDuration={0.3 + i * 0.15}
+                        />
                       </button>
                     ))}
                   </motion.div>

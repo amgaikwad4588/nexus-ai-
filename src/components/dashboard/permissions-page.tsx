@@ -27,6 +27,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import DecryptedText from "@/components/ui/decrypted-text";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
@@ -285,7 +286,15 @@ export function PermissionsPage() {
         <motion.div variants={fadeUp}>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Shield className="w-6 h-6 text-primary" />
-            Permission Dashboard
+            <DecryptedText
+              text="Permission Dashboard"
+              animateOn="view"
+              speed={35}
+              sequential
+              revealDirection="start"
+              className="text-foreground"
+              encryptedClassName="text-muted-foreground/40"
+            />
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Control exactly what your AI agent can access. Uncheck a scope to

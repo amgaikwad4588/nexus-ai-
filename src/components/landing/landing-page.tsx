@@ -16,6 +16,9 @@ import {
   Network,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import BlurText from "@/components/ui/blur-text";
+import DecryptedText from "@/components/ui/decrypted-text";
+import LightRays from "@/components/ui/light-rays";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -76,11 +79,27 @@ export function LandingPage() {
 
       {/* Hero Section */}
       <motion.section
-        className="pt-32 pb-20 px-6"
+        className="pt-32 pb-20 px-6 relative"
         initial="hidden"
         animate="visible"
         variants={stagger}
       >
+        <div className="absolute inset-0 -z-1">
+          <LightRays
+            raysOrigin="top-center"
+            raysColor="#ffffff"
+            raysSpeed={3}
+            lightSpread={1.3}
+            rayLength={3}
+            followMouse={true}
+            mouseInfluence={0.3}
+            noiseAmount={0}
+            distortion={0}
+            pulsating={false}
+            fadeDistance={1}
+            saturation={1}
+          />
+        </div>
         <div className="max-w-5xl mx-auto text-center">
           <motion.div variants={fadeUp} className="mb-6">
             <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-sm font-medium text-muted-foreground">
@@ -89,14 +108,15 @@ export function LandingPage() {
             </span>
           </motion.div>
 
-          <motion.h1
-            variants={fadeUp}
-            className="text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-[1.1]"
-          >
-            Your AI Agent,{" "}
-            <span className="gradient-text">Securely Connected</span>{" "}
-            to Your Digital Life
-          </motion.h1>
+          <motion.div variants={fadeUp}>
+            <BlurText
+              text="Your AI Agent, Securely Connected to Your Digital Life"
+              delay={100}
+              animateBy="words"
+              direction="top"
+              className="text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-[1.1] justify-center"
+            />
+          </motion.div>
 
           <motion.p
             variants={fadeUp}
@@ -205,7 +225,15 @@ export function LandingPage() {
         <div className="max-w-6xl mx-auto">
           <motion.div variants={fadeUp} className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Identity-First Agent Architecture
+              <DecryptedText
+                text="Identity-First Agent Architecture"
+                animateOn="view"
+                speed={40}
+                sequential
+                revealDirection="center"
+                className="text-foreground"
+                encryptedClassName="text-muted-foreground/40"
+              />
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
               Every API call is authenticated, scoped, and audited. Your agent

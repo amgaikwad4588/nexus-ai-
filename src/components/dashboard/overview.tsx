@@ -22,6 +22,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import DecryptedText from "@/components/ui/decrypted-text";
+import { HexagonBackground } from "@/components/animate-ui/components/backgrounds/hexagon";
 import type { AuditEntry } from "@/lib/types";
 
 const fadeUp = {
@@ -58,7 +60,9 @@ export function DashboardOverview({
   }, []);
 
   return (
-    <div className="p-6 md:p-8 max-w-6xl mx-auto">
+    <div className="relative min-h-screen">
+      <HexagonBackground className="absolute inset-0 rounded-xl" hexagonSize={65} hexagonMargin={2} />
+      <div className="relative z-10 p-6 md:p-8 max-w-6xl mx-auto">
       <motion.div
         initial="hidden"
         animate="visible"
@@ -74,7 +78,17 @@ export function DashboardOverview({
             </AvatarFallback>
           </Avatar>
           <div>
-            <h1 className="text-2xl font-bold">Welcome back, {userName.split(" ")[0]}</h1>
+            <h1 className="text-2xl font-bold">
+              <DecryptedText
+                text={`Welcome back, ${userName.split(" ")[0]}`}
+                animateOn="view"
+                speed={30}
+                sequential
+                revealDirection="start"
+                className="text-foreground"
+                encryptedClassName="text-muted-foreground/40"
+              />
+            </h1>
             <p className="text-muted-foreground text-sm">
               Your AI agent is ready. Here&apos;s your command center.
             </p>
@@ -92,6 +106,7 @@ export function DashboardOverview({
                 href: "/dashboard/chat",
                 color: "text-primary",
                 bgColor: "bg-primary/10",
+                gradient: "from-primary/20 via-primary/5 to-transparent",
               },
               {
                 icon: Link2,
@@ -100,6 +115,7 @@ export function DashboardOverview({
                 href: "/dashboard/connections",
                 color: "text-blue-400",
                 bgColor: "bg-blue-400/10",
+                gradient: "from-blue-400/20 via-blue-400/5 to-transparent",
               },
               {
                 icon: Shield,
@@ -108,6 +124,7 @@ export function DashboardOverview({
                 href: "/dashboard/permissions",
                 color: "text-green-400",
                 bgColor: "bg-green-400/10",
+                gradient: "from-green-400/20 via-green-400/5 to-transparent",
               },
               {
                 icon: Activity,
@@ -116,11 +133,15 @@ export function DashboardOverview({
                 href: "/dashboard/audit",
                 color: "text-orange-400",
                 bgColor: "bg-orange-400/10",
+                gradient: "from-orange-400/20 via-orange-400/5 to-transparent",
               },
             ].map((item) => (
               <Link key={item.href} href={item.href}>
-                <Card className="hover:bg-accent/50 transition-colors cursor-pointer group h-full">
-                  <CardContent className="pt-6">
+                <Card className="relative overflow-hidden transition-all duration-300 cursor-pointer group h-full hover:border-border/80">
+                  <div
+                    className={`absolute inset-0 bg-linear-to-br ${item.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
+                  />
+                  <CardContent className="pt-6 relative z-10">
                     <div
                       className={`w-10 h-10 rounded-lg ${item.bgColor} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}
                     >
@@ -330,6 +351,7 @@ export function DashboardOverview({
           </Card>
         </motion.div>
       </motion.div>
+      </div>
     </div>
   );
 }

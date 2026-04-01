@@ -28,6 +28,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import DecryptedText from "@/components/ui/decrypted-text";
 import type { AuditEntry } from "@/lib/types";
 
 const serviceIcons: Record<string, { icon: typeof Mail; color: string }> = {
@@ -106,7 +107,15 @@ export function AuditPage() {
             <div>
               <h1 className="text-2xl font-bold flex items-center gap-2">
                 <Activity className="w-6 h-6 text-primary" />
-                Audit Trail
+                <DecryptedText
+                  text="Audit Trail"
+                  animateOn="view"
+                  speed={35}
+                  sequential
+                  revealDirection="start"
+                  className="text-foreground"
+                  encryptedClassName="text-muted-foreground/40"
+                />
               </h1>
               <p className="text-sm text-muted-foreground mt-1">
                 Every agent action logged with full transparency
