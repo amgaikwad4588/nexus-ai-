@@ -2,13 +2,20 @@ import { AuditEntry } from "./types";
 import fs from "fs";
 import path from "path";
 
-// ─── JSON file-backed audit log ─────────────────────────────────────
+// ─── Detect Vercel (read-only filesystem) ───────────────────────────
+const IS_VERCEL = !!process.env.VERCEL;
+
+// ─── JSON file-backed audit log (local) / in-memory (Vercel) ────────
 const AUDIT_FILE = path.join(process.cwd(), "data", "audit-log.json");
 const AUDIT_TMP = AUDIT_FILE + ".tmp";
 const AUDIT_BACKUP = AUDIT_FILE + ".bak";
 const MAX_ENTRIES = 500;
 
+// In-memory fallback for Vercel (serverless — no persistent fs)
+let memoryLog: AuditEntry[] = [];
+
 function ensureDataDir() {
+  if (IS_VERCEL) return;
   const dir = path.dirname(AUDIT_FILE);
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
@@ -16,6 +23,7 @@ function ensureDataDir() {
 }
 
 function readLog(): AuditEntry[] {
+  if (IS_VERCEL) return memoryLog;
   try {
     ensureDataDir();
     if (!fs.existsSync(AUDIT_FILE)) return [];
@@ -40,6 +48,10 @@ function readLog(): AuditEntry[] {
 }
 
 function writeLog(entries: AuditEntry[]) {
+  if (IS_VERCEL) {
+    memoryLog = entries;
+    return;
+  }
   ensureDataDir();
   // Write to temp → backup old → rename temp to main (crash-safe)
   fs.writeFileSync(AUDIT_TMP, JSON.stringify(entries, null, 2), "utf-8");
