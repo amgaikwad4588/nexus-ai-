@@ -2,6 +2,7 @@ import { streamText, stepCountIs, convertToModelMessages } from "ai";
 import { google } from "@ai-sdk/google";
 import { setAIContext } from "@auth0/ai-vercel";
 import { auth0 } from "@/lib/auth0";
+import { setRequestRefreshToken } from "@/lib/auth0-ai";
 import { checkToolPermission, logPermissionDenied } from "@/lib/permissions";
 import { evaluateRisk } from "@/lib/risk-engine";
 import { addAuditEntry } from "@/lib/audit";
@@ -115,6 +116,7 @@ export async function POST(req: Request) {
     const threadID = `nexus-${userId}-${Date.now()}`;
 
     setAIContext({ threadID });
+    setRequestRefreshToken(session.tokenSet.refreshToken);
 
     const model = google("gemini-2.5-flash");
     const modelMessages = await convertToModelMessages(messages);

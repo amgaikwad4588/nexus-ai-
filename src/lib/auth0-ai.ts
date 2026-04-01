@@ -10,7 +10,16 @@ export const auth0AI = new Auth0AI({
   },
 });
 
+// Cache refresh token per-request so tools can access it during streaming
+// (Next.js cookies context is lost inside async tool execution on Vercel)
+let _requestRefreshToken: string | undefined;
+
+export function setRequestRefreshToken(token: string | undefined) {
+  _requestRefreshToken = token;
+}
+
 async function getRefreshToken(): Promise<string | undefined> {
+  if (_requestRefreshToken) return _requestRefreshToken;
   const session = await auth0.getSession();
   return session?.tokenSet.refreshToken;
 }
