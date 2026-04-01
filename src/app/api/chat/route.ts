@@ -115,7 +115,7 @@ export async function POST(req: Request) {
 
     setAIContext({ threadID });
 
-    const model = google("gemini-3.1-flash-lite-preview");
+    const model = google("gemini-2.5-flash");
     const modelMessages = await convertToModelMessages(messages);
 
     // Wrap every tool with server-side permission enforcement
@@ -173,7 +173,7 @@ Guidelines:
 The user's name is ${session.user.name || "there"}.`,
       messages: modelMessages,
       tools,
-      maxRetries: 0,
+      maxRetries: 2,
       stopWhen: stepCountIs(2),
     });
 

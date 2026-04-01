@@ -28,8 +28,8 @@ export async function GET() {
 
   // Try the token exchange manually
   const domain = process.env.AUTH0_AI_DOMAIN || process.env.AUTH0_DOMAIN;
-  const clientId = process.env.AUTH0_AI_CLIENT_ID || process.env.AUTH0_CLIENT_ID;
-  const clientSecret = process.env.AUTH0_AI_CLIENT_SECRET || process.env.AUTH0_CLIENT_SECRET;
+  const clientId = process.env.AUTH0_M2M_CLIENT_ID || process.env.AUTH0_AI_CLIENT_ID || process.env.AUTH0_CLIENT_ID;
+  const clientSecret = process.env.AUTH0_M2M_CLIENT_SECRET || process.env.AUTH0_AI_CLIENT_SECRET || process.env.AUTH0_CLIENT_SECRET;
 
   const connections = ["google-oauth2", "github", "slack-custom", "discord"];
   const exchangeResults: Record<string, unknown> = {};
