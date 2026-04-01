@@ -34,6 +34,9 @@ yarn-error.log*
 .env*
 !.env.local.example
 
+# audit log data
+/data/
+
 # vercel
 .vercel
 

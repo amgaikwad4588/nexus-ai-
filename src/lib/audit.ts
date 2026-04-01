@@ -1,7 +1,33 @@
 import { AuditEntry } from "./types";
+import fs from "fs";
+import path from "path";
 
-// In-memory audit store (in production, use a database)
-const auditLog: AuditEntry[] = [];
+// ─── JSON file-backed audit log ─────────────────────────────────────
+const AUDIT_FILE = path.join(process.cwd(), "data", "audit-log.json");
+const MAX_ENTRIES = 500;
+
+function ensureDataDir() {
+  const dir = path.dirname(AUDIT_FILE);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+}
+
+function readLog(): AuditEntry[] {
+  try {
+    ensureDataDir();
+    if (!fs.existsSync(AUDIT_FILE)) return [];
+    const raw = fs.readFileSync(AUDIT_FILE, "utf-8");
+    return JSON.parse(raw) as AuditEntry[];
+  } catch {
+    return [];
+  }
+}
+
+function writeLog(entries: AuditEntry[]) {
+  ensureDataDir();
+  fs.writeFileSync(AUDIT_FILE, JSON.stringify(entries, null, 2), "utf-8");
+}
 
 export function addAuditEntry(entry: Omit<AuditEntry, "id" | "timestamp">) {
   const newEntry: AuditEntry = {
@@ -9,17 +35,20 @@ export function addAuditEntry(entry: Omit<AuditEntry, "id" | "timestamp">) {
     id: crypto.randomUUID(),
     timestamp: new Date().toISOString(),
   };
-  auditLog.unshift(newEntry);
+  const log = readLog();
+  log.unshift(newEntry);
   // Keep last 500 entries
-  if (auditLog.length > 500) auditLog.pop();
+  if (log.length > MAX_ENTRIES) log.length = MAX_ENTRIES;
+  writeLog(log);
   return newEntry;
 }
 
 export function getAuditLog(limit = 50): AuditEntry[] {
-  return auditLog.slice(0, limit);
+  return readLog().slice(0, limit);
 }
 
 export function getAuditStats() {
+  const auditLog = readLog();
   const total = auditLog.length;
   const byService = {
     google: auditLog.filter((e) => e.service === "google").length,

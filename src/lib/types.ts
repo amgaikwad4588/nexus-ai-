@@ -1,5 +1,6 @@
 export interface AuditEntry {
   id: string;
+  userId?: string;
   timestamp: string;
   action: string;
   service: "google" | "github" | "slack" | "discord" | "system";

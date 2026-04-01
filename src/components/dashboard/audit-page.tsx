@@ -16,6 +16,8 @@ import {
   Loader2,
   Filter,
   BarChart3,
+  FileJson,
+  X,
 } from "lucide-react";
 import {
   Card,
@@ -67,6 +69,7 @@ export function AuditPage() {
   const [stats, setStats] = useState<AuditStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string | null>(null);
+  const [showRawJson, setShowRawJson] = useState(false);
 
   useEffect(() => {
     fetchAudit();
@@ -109,21 +112,31 @@ export function AuditPage() {
                 Every agent action logged with full transparency
               </p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setLoading(true);
-                fetchAudit();
-              }}
-              disabled={loading}
-            >
-              {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <RefreshCw className="w-4 h-4" />
-              )}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant={showRawJson ? "secondary" : "outline"}
+                size="sm"
+                onClick={() => setShowRawJson(!showRawJson)}
+              >
+                <FileJson className="w-4 h-4 mr-1" />
+                Raw JSON
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setLoading(true);
+                  fetchAudit();
+                }}
+                disabled={loading}
+              >
+                {loading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-4 h-4" />
+                )}
+              </Button>
+            </div>
           </div>
         </motion.div>
 
@@ -214,6 +227,34 @@ export function AuditPage() {
             })}
           </div>
         </motion.div>
+
+        {/* Raw JSON Viewer */}
+        {showRawJson && (
+          <motion.div variants={fadeUp}>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <FileJson className="w-4 h-4 text-primary" />
+                  Raw JSON — audit-log.json
+                </CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowRawJson(false)}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className="max-h-125">
+                  <pre className="text-xs font-mono bg-black/40 rounded-lg p-4 overflow-x-auto whitespace-pre-wrap break-all">
+                    {JSON.stringify(entries, null, 2)}
+                  </pre>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
 
         {/* Audit Log */}
         <motion.div variants={fadeUp}>

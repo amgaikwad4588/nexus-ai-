@@ -33,6 +33,7 @@ export async function POST(req: Request) {
       }
 
       addAuditEntry({
+        userId,
         action: `Step-up denied: ${action.description}`,
         service: action.service,
         scopes: [],
@@ -55,6 +56,7 @@ export async function POST(req: Request) {
     }
 
     addAuditEntry({
+      userId,
       action: `Step-up approved: ${action.description}`,
       service: action.service,
       scopes: [],
@@ -70,6 +72,7 @@ export async function POST(req: Request) {
     // High-risk actions require a valid step-up session (re-authentication)
     if (riskEval.decision === "REAUTH" && !hasValidStepUpSession(userId)) {
       addAuditEntry({
+        userId,
         action: `Re-auth required: ${action.description}`,
         service: action.service,
         scopes: [],
@@ -102,7 +105,7 @@ export async function POST(req: Request) {
     }
 
     // Execute the approved action
-    const result = await executeAction(action.toolName, action.args, session);
+    const result = await executeAction(action.toolName, action.args, session, userId);
     console.log("[step-up] executeAction result:", JSON.stringify(result));
     markExecuted(actionId, result);
 
@@ -151,7 +154,8 @@ export async function GET(req: Request) {
 async function executeAction(
   toolName: string,
   args: Record<string, unknown>,
-  session: { user: { sub: string }; tokenSet: { refreshToken?: string } }
+  session: { user: { sub: string }; tokenSet: { refreshToken?: string } },
+  userId: string
 ): Promise<Record<string, unknown>> {
   const refreshToken = session.tokenSet.refreshToken;
   if (!refreshToken) {
@@ -187,6 +191,7 @@ async function executeAction(
     const issue = await response.json();
 
     addAuditEntry({
+      userId,
       action: `Created GitHub issue #${issue.number} in ${repo}`,
       service: "github",
       scopes: ["repo"],
@@ -229,6 +234,7 @@ async function executeAction(
     }
 
     addAuditEntry({
+      userId,
       action: `Sent Slack message to #${channel}`,
       service: "slack",
       scopes: ["chat:write"],

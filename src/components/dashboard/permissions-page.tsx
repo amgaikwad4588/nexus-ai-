@@ -15,6 +15,9 @@ import {
   ArrowRight,
   KeyRound,
   Loader2,
+  Pencil,
+  Clock,
+  Bot,
 } from "lucide-react";
 import {
   Card,
@@ -43,6 +46,7 @@ const servicePermissions: {
   icon: typeof Mail;
   color: string;
   bgColor: string;
+  lastAccessed: string | null;
   scopes: ScopeInfo[];
 }[] = [
   {
@@ -51,6 +55,7 @@ const servicePermissions: {
     icon: Mail,
     color: "text-red-400",
     bgColor: "bg-red-400/10",
+    lastAccessed: "15 mins ago",
     scopes: [
       {
         scope: "gmail.readonly",
@@ -78,6 +83,7 @@ const servicePermissions: {
     icon: GitBranch,
     color: "text-white",
     bgColor: "bg-white/10",
+    lastAccessed: "2 mins ago",
     scopes: [
       {
         scope: "read:user",
@@ -105,6 +111,7 @@ const servicePermissions: {
     icon: MessageSquare,
     color: "text-purple-400",
     bgColor: "bg-purple-400/10",
+    lastAccessed: "1 hour ago",
     scopes: [
       {
         scope: "channels:read",
@@ -132,6 +139,34 @@ const servicePermissions: {
       },
     ],
   },
+  {
+    id: "discord",
+    name: "Discord",
+    icon: MessageSquare,
+    color: "text-indigo-400",
+    bgColor: "bg-indigo-400/10",
+    lastAccessed: null,
+    scopes: [
+      {
+        scope: "identify",
+        description: "Read user profile and avatar",
+        riskLevel: "low",
+        readWrite: "read",
+      },
+      {
+        scope: "guilds",
+        description: "View server list and membership",
+        riskLevel: "low",
+        readWrite: "read",
+      },
+      {
+        scope: "guilds.members.read",
+        description: "View member info in servers",
+        riskLevel: "medium",
+        readWrite: "read",
+      },
+    ],
+  },
 ];
 
 const riskColors = {
@@ -144,6 +179,45 @@ export function PermissionsPage() {
   const [permissions, setPermissions] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
+  const [serviceAccess, setServiceAccess] = useState<Record<string, boolean>>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("nexus:serviceAccess");
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return Object.fromEntries(servicePermissions.map((s) => [s.id, true]));
+  });
+  const [writeAccess, setWriteAccess] = useState<Record<string, boolean>>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("nexus:writeAccess");
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return Object.fromEntries(servicePermissions.map((s) => [s.id, false]));
+  });
+
+  useEffect(() => {
+    localStorage.setItem("nexus:serviceAccess", JSON.stringify(serviceAccess));
+  }, [serviceAccess]);
+
+  useEffect(() => {
+    localStorage.setItem("nexus:writeAccess", JSON.stringify(writeAccess));
+  }, [writeAccess]);
+
+  const toggleServiceAccess = (id: string) => {
+    setServiceAccess((prev) => {
+      const next = { ...prev, [id]: !prev[id] };
+      if (!next[id]) setWriteAccess((w) => ({ ...w, [id]: false }));
+      return next;
+    });
+  };
+
+  const toggleWriteAccess = (id: string) => {
+    if (!serviceAccess[id]) return;
+    setWriteAccess((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
 
   // Fetch current permission states on mount
   useEffect(() => {
@@ -326,7 +400,7 @@ export function PermissionsPage() {
           </Card>
         </motion.div>
 
-        {/* Service Permissions with Toggles */}
+        {/* Service Permissions — Hierarchical */}
         {loading ? (
           <motion.div variants={fadeUp} className="flex items-center justify-center py-12">
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -335,119 +409,208 @@ export function PermissionsPage() {
         ) : (
           servicePermissions.map((service) => {
             const Icon = service.icon;
-            const allEnabled = service.scopes.every((s) => isEnabled(s.scope));
-            const noneEnabled = service.scopes.every((s) => !isEnabled(s.scope));
+            const serviceEnabled = serviceAccess[service.id];
+            const enabledScopeCount = service.scopes.filter((s) => isEnabled(s.scope)).length;
             return (
               <motion.div key={service.id} variants={fadeUp}>
-                <Card>
-                  <CardHeader>
+                <Card className={!serviceEnabled ? "border-zinc-800" : ""}>
+                  {/* ── Master toggle row ── */}
+                  <CardHeader className="pb-0">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div
-                          className={`w-10 h-10 rounded-lg ${service.bgColor} flex items-center justify-center`}
+                          className={`w-10 h-10 rounded-lg ${serviceEnabled ? service.bgColor : "bg-zinc-800/50"} flex items-center justify-center transition-colors`}
                         >
-                          <Icon className={`w-5 h-5 ${service.color}`} />
+                          <Icon className={`w-5 h-5 ${serviceEnabled ? service.color : "text-zinc-500"}`} />
                         </div>
                         <div>
-                          <CardTitle className="text-base">
+                          <CardTitle className={`text-base ${!serviceEnabled ? "text-zinc-500" : ""}`}>
                             {service.name}
                           </CardTitle>
-                          <CardDescription className="text-xs">
-                            {service.scopes.filter((s) => isEnabled(s.scope)).length}/{service.scopes.length} scopes enabled
-                          </CardDescription>
+                          <div className="flex items-center gap-3 mt-0.5">
+                            <CardDescription className="text-xs">
+                              {serviceEnabled
+                                ? `${enabledScopeCount}/${service.scopes.length} scopes enabled`
+                                : "All access blocked"}
+                            </CardDescription>
+                            <span className="text-zinc-700">|</span>
+                            <div className="flex items-center gap-1">
+                              <Clock className="w-3 h-3 text-muted-foreground" />
+                              <span className="text-[11px] text-muted-foreground">
+                                {service.lastAccessed ? (
+                                  <span
+                                    className={
+                                      service.lastAccessed.includes("min")
+                                        ? "text-emerald-400"
+                                        : "text-foreground"
+                                    }
+                                  >
+                                    {service.lastAccessed}
+                                  </span>
+                                ) : (
+                                  <span className="text-zinc-500">Never</span>
+                                )}
+                              </span>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      {noneEnabled && (
-                        <Badge variant="outline" className="text-xs text-red-400 border-red-400/30 bg-red-400/10">
-                          All Blocked
-                        </Badge>
-                      )}
-                      {allEnabled && (
-                        <Badge variant="outline" className="text-xs text-green-400 border-green-400/30 bg-green-400/10">
-                          All Allowed
-                        </Badge>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      {service.scopes.map((scope) => {
-                        const risk = riskColors[scope.riskLevel];
-                        const enabled = isEnabled(scope.scope);
-                        const isSaving = saving === scope.scope;
-                        return (
+                      <div className="flex items-center gap-3">
+                        {!serviceEnabled && (
+                          <Badge variant="outline" className="text-xs text-zinc-400 border-zinc-600/30 bg-zinc-800/30">
+                            Disabled
+                          </Badge>
+                        )}
+                        {serviceEnabled && (
+                          <div className="flex items-center gap-2">
+                            <Pencil
+                              className={`w-3.5 h-3.5 ${
+                                writeAccess[service.id]
+                                  ? "text-yellow-400"
+                                  : "text-muted-foreground"
+                              }`}
+                            />
+                            <span className="text-[11px] text-muted-foreground hidden sm:inline">
+                              Write
+                            </span>
+                            <button
+                              onClick={() => toggleWriteAccess(service.id)}
+                              className="relative shrink-0 cursor-pointer"
+                              aria-label={`${writeAccess[service.id] ? "Disable" : "Enable"} write access for ${service.name}`}
+                            >
+                              <div
+                                className={`w-9 h-5 rounded-full transition-colors duration-200 ${
+                                  writeAccess[service.id]
+                                    ? "bg-yellow-500"
+                                    : "bg-zinc-700"
+                                }`}
+                              >
+                                <div
+                                  className={`w-4 h-4 rounded-full bg-white shadow-md transform transition-transform duration-200 mt-0.5 ${
+                                    writeAccess[service.id]
+                                      ? "translate-x-4.5"
+                                      : "translate-x-0.5"
+                                  }`}
+                                />
+                              </div>
+                            </button>
+                          </div>
+                        )}
+                        <button
+                          onClick={() => toggleServiceAccess(service.id)}
+                          className="relative shrink-0 cursor-pointer"
+                          aria-label={`${serviceEnabled ? "Disable" : "Enable"} ${service.name} access`}
+                        >
                           <div
-                            key={scope.scope}
-                            className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${
-                              enabled
-                                ? "bg-accent/20 border-border/30"
-                                : "bg-red-950/20 border-red-500/20 opacity-75"
+                            className={`w-11 h-6 rounded-full transition-colors duration-200 ${
+                              serviceEnabled ? "bg-emerald-500" : "bg-zinc-700"
                             }`}
                           >
-                            <div className="flex items-center gap-3">
-                              {/* Toggle switch */}
-                              <button
-                                onClick={() => toggleScope(scope.scope)}
-                                disabled={isSaving}
-                                className="relative shrink-0 cursor-pointer"
-                                aria-label={`${enabled ? "Deny" : "Allow"} ${scope.scope}`}
-                              >
-                                {isSaving ? (
-                                  <div className="w-11 h-6 flex items-center justify-center">
-                                    <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
-                                  </div>
-                                ) : (
-                                  <div
-                                    className={`w-11 h-6 rounded-full transition-colors duration-200 ${
-                                      enabled
-                                        ? "bg-emerald-500"
-                                        : "bg-zinc-700"
-                                    }`}
-                                  >
+                            <div
+                              className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform duration-200 mt-0.5 ${
+                                serviceEnabled ? "translate-x-5.5" : "translate-x-0.5"
+                              }`}
+                            />
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                  </CardHeader>
+
+                  {/* ── Sub-permissions tree ── */}
+                  <CardContent className="pt-4">
+                    <div className="relative ml-5 pl-4 border-l-2 border-border/40 space-y-2">
+                      {service.scopes.map((scope, idx) => {
+                        const risk = riskColors[scope.riskLevel];
+                        const enabled = serviceEnabled && isEnabled(scope.scope);
+                        const isSaving = saving === scope.scope;
+                        const isLast = idx === service.scopes.length - 1;
+                        return (
+                          <div key={scope.scope} className="relative">
+                            {/* Tree branch connector */}
+                            <div className="absolute -left-4 top-1/2 w-3 h-px bg-border/40" />
+                            {isLast && (
+                              <div className="absolute -left-2.25 top-1/2 bottom-0 w-0.5 bg-card" />
+                            )}
+                            <div
+                              className={`flex items-center justify-between p-3 rounded-lg border transition-all duration-200 ${
+                                !serviceEnabled
+                                  ? "bg-zinc-900/30 border-zinc-800/30 opacity-40"
+                                  : enabled
+                                    ? "bg-accent/20 border-border/30"
+                                    : "bg-red-950/20 border-red-500/20 opacity-75"
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <button
+                                  onClick={() => toggleScope(scope.scope)}
+                                  disabled={isSaving || !serviceEnabled}
+                                  className="relative shrink-0 cursor-pointer disabled:cursor-not-allowed"
+                                  aria-label={`${enabled ? "Deny" : "Allow"} ${scope.scope}`}
+                                >
+                                  {isSaving ? (
+                                    <div className="w-11 h-6 flex items-center justify-center">
+                                      <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                                    </div>
+                                  ) : (
                                     <div
-                                      className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform duration-200 mt-0.5 ${
-                                        enabled ? "translate-x-5.5" : "translate-x-0.5"
+                                      className={`w-11 h-6 rounded-full transition-colors duration-200 ${
+                                        !serviceEnabled
+                                          ? "bg-zinc-800"
+                                          : enabled
+                                            ? "bg-emerald-500"
+                                            : "bg-zinc-700"
                                       }`}
-                                    />
-                                  </div>
-                                )}
-                              </button>
-                              <div
-                                className={`w-2 h-2 rounded-full ${
-                                  scope.readWrite === "read"
-                                    ? "bg-green-400"
-                                    : "bg-yellow-400"
-                                }`}
-                              />
-                              <div>
-                                <p className={`text-sm font-mono font-medium ${!enabled ? "line-through text-muted-foreground" : ""}`}>
-                                  {scope.scope}
-                                </p>
-                                <p className="text-xs text-muted-foreground">
-                                  {scope.description}
-                                </p>
+                                    >
+                                      <div
+                                        className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform duration-200 mt-0.5 ${
+                                          enabled ? "translate-x-5.5" : "translate-x-0.5"
+                                        }`}
+                                      />
+                                    </div>
+                                  )}
+                                </button>
+                                <div
+                                  className={`w-2 h-2 rounded-full ${
+                                    !serviceEnabled
+                                      ? "bg-zinc-600"
+                                      : scope.readWrite === "read"
+                                        ? "bg-green-400"
+                                        : "bg-yellow-400"
+                                  }`}
+                                />
+                                <div>
+                                  <p className={`text-sm font-mono font-medium ${!serviceEnabled || !enabled ? "line-through text-muted-foreground" : ""}`}>
+                                    {scope.scope}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {scope.description}
+                                  </p>
+                                </div>
                               </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Badge
-                                variant="outline"
-                                className={`text-xs ${risk.text} ${risk.border} ${risk.bg}`}
-                              >
-                                {scope.riskLevel}
-                              </Badge>
-                              <Badge variant="secondary" className="text-xs">
-                                {scope.readWrite}
-                              </Badge>
-                              <Badge
-                                variant="outline"
-                                className={`text-xs ${
-                                  enabled
-                                    ? "text-emerald-400 border-emerald-400/30 bg-emerald-400/10"
-                                    : "text-red-400 border-red-400/30 bg-red-400/10"
-                                }`}
-                              >
-                                {enabled ? "Allowed" : "Denied"}
-                              </Badge>
+                              <div className="flex items-center gap-2">
+                                <Badge
+                                  variant="outline"
+                                  className={`text-xs ${!serviceEnabled ? "text-zinc-500 border-zinc-700 bg-zinc-800/30" : `${risk.text} ${risk.border} ${risk.bg}`}`}
+                                >
+                                  {scope.riskLevel}
+                                </Badge>
+                                <Badge variant="secondary" className={`text-xs ${!serviceEnabled ? "opacity-50" : ""}`}>
+                                  {scope.readWrite}
+                                </Badge>
+                                <Badge
+                                  variant="outline"
+                                  className={`text-xs ${
+                                    !serviceEnabled
+                                      ? "text-zinc-500 border-zinc-700 bg-zinc-800/30"
+                                      : enabled
+                                        ? "text-emerald-400 border-emerald-400/30 bg-emerald-400/10"
+                                        : "text-red-400 border-red-400/30 bg-red-400/10"
+                                  }`}
+                                >
+                                  {!serviceEnabled ? "Disabled" : enabled ? "Allowed" : "Denied"}
+                                </Badge>
+                              </div>
                             </div>
                           </div>
                         );
