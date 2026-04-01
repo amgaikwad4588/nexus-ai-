@@ -31,169 +31,70 @@ Built for the [**Authorized to Act: Auth0 for AI Agents Hackathon 2026**](https:
 
 ---
 
-## The Problem
+## The Problem With AI Agents Today
 
-> *What happens when your AI agent sends a Slack message you didn't approve, or deletes a repo without asking?*
+AI agents are powerful, but giving them access to your accounts is terrifying. Most solutions store raw API tokens in environment variables or databases — one breach and everything is exposed. Users have no visibility into what the agent is doing, no way to scope its permissions, and no audit trail.
 
-AI agents are powerful — but most implementations are a security nightmare:
+## Our Solution
 
-| Problem | Reality |
-|---|---|
-| Raw API tokens in `.env` files | One breach = everything exposed |
-| No audit trail | You have no idea what the agent did |
-| All-or-nothing permissions | Write access = same as read access |
-| No user control over write ops | Agent acts first, tells you later |
+Nexus solves this by putting **Auth0 Token Vault** at the center of every interaction:
 
-The moment you give an AI access to your GitHub, Slack, or Gmail, you need guardrails. Nexus is the security layer between the AI and your services.
+- The AI agent **never sees or stores raw credentials**. Token Vault exchanges scoped, short-lived access tokens on demand.
+- Every action is **logged in a real-time audit trail** — you can see exactly what API was called, with what scopes, and when.
+- High-risk operations like sending Slack messages or creating GitHub issues trigger **step-up authentication** — the agent literally asks your permission before acting.
+- A **permissions dashboard** lets you visualize exactly what access each connected service has, categorized by risk level.
 
----
-
-## My Solution: Risk-First, Token-Vault-Backed AI
-
-Nexus is built on three security pillars:
-
-### 1. Auth0 Token Vault — Credentials Never Leave the Vault
-The AI agent **never sees or stores raw OAuth tokens.** Auth0 Token Vault exchanges your stored refresh tokens for short-lived, scoped access tokens on demand. The app is blind to your credentials by design.
-
-### 2. Centralized Risk Engine — Every Action Evaluated Before Execution
-All decisions are enforced server-side before token exchange
-Every single tool call passes through `riskEngine()` before anything executes:
-
-```
-LOW risk    → Auto-execute immediately
-MEDIUM risk → Yellow approval card in chat (step-up auth)
-HIGH risk   → Red re-authentication card required
-UNKNOWN     → Blocked by default (fail-closed)
-```
-
-This isn't a checkbox — it's a decision layer baked into every API call.
-
-### 3. Persistent Audit Trail — Full Visibility, Always
-Every action is logged to a persistent JSON store with `userId`, scopes used, risk classification, decision outcome, and timestamp. It survives server restarts. You can view raw JSON directly in the dashboard.
+The result: an AI agent you can actually trust.
 
 ---
 
-## Who Is This For?
+## What Nexus Can Do
 
-Developers and teams who let AI agents act on their behalf. The moment you give an AI access to your GitHub, Slack, or Gmail, you need:
-- **Visibility** — what did the agent do, and when?
-- **Control** — can you approve or deny before it acts?
-- **Guardrails** — does it fail safely when something goes wrong?
+Talk to Nexus like you'd talk to a colleague:
 
-Nexus isn't a replacement for Slack or GitHub. It's the security layer that sits between your AI and your services — so the agent never acts without your knowledge.
+> *"Summarize my unread emails and post a digest to #general on Slack"*
+
+> *"List my open GitHub issues and check if I have any meetings tomorrow"*
+
+> *"Create a GitHub issue for the login bug and let the team know on Slack"*
+
+> *"Show my Discord servers and check my roles"*
+
+Under the hood, Nexus has **12 tools** across 4 services:
+
+| Tool | Service | What It Does | Risk | Auth Method |
+|------|---------|-------------|------|-------------|
+| `searchGmail` | Google | Search your inbox | Low | Token Vault |
+| `checkCalendar` | Google | Check events & availability | Low | Token Vault |
+| `listGitHubRepos` | GitHub | List your repositories | Low | Token Vault |
+| `getGitHubIssues` | GitHub | View issues on a repo | Low | Token Vault |
+| `getGitHubProfile` | GitHub | Get your GitHub profile | Low | Token Vault |
+| `createGitHubIssue` | GitHub | Create a new issue | Medium | Token Vault + Step-Up |
+| `listSlackChannels` | Slack | Browse your channels | Low | Bot Token |
+| `getSlackChannelHistory` | Slack | Read channel messages | Low | Bot Token |
+| `sendSlackMessage` | Slack | Send a message | Medium | Bot Token + Step-Up |
+| `getDiscordProfile` | Discord | Get your Discord profile | Low | Token Vault |
+| `listDiscordGuilds` | Discord | List your servers | Low | Token Vault |
+| `getDiscordGuildMember` | Discord | Check membership & roles | Low | Token Vault |
+
+Medium-risk (write) operations trigger step-up authentication before executing.
 
 ---
 
 ## How It Works
 
 ```
-You
- │
- ▼
-Nexus AI (Gemini via Vercel AI SDK)
- │
- ▼
-withRiskEngine() ──► Risk Engine evaluates tool call
- │                      LOW  → EXECUTE
- │                      MED  → STEP_UP (yellow card)
- │                      HIGH → REAUTH  (red card)
- │                      ???  → BLOCK
- ▼
-Auth0 Token Vault ──► Short-lived scoped token
- │
- ├──► Google API (Gmail, Calendar)
- ├──► GitHub API (Repos, Issues — read & write)
- ├──► Discord API (Profile, Guilds, Members)
- └──► Slack Bot Token (Channels, Messages)
- │
- ▼
-Audit Trail logged (persistent JSON, userId-tagged)
+You  →  Nexus AI  →  Auth0 Token Vault  →  Google / GitHub / Discord
+                         ↓                         ↓
+                   Audit Trail logged        Slack (Bot Token)
 ```
 
-**Write operations (Medium/High risk)** queue a pending action and surface an approval card in chat. The user clicks **Authorize & Execute** — only then does the token exchange happen and the action fire. Deny it, and nothing ever runs.
-
----
-
-## 13 Verified Tools Across 4 Services
-
-All 13 tools are **verified working end-to-end**, including the full Token Vault + step-up auth flow.
-
-### Google — Token Vault
-| # | Tool | Action | Risk |
-|---|------|--------|------|
-| 1 | `searchGmail` | Search your inbox by query | Low |
-| 2 | `checkCalendar` | Check events & availability | Low |
-
-### GitHub — Token Vault
-| # | Tool | Action | Risk |
-|---|------|--------|------|
-| 3 | `getGitHubProfile` | Get authenticated user's profile | Low |
-| 4 | `listGitHubRepos` | List repos with sort/filter | Low |
-| 5 | `getGitHubIssues` | View issues on a repo | Low |
-| 6 | `createGitHubIssue` | Create a new issue *(write)* | Medium → Step-Up |
-| 7 | `deleteGitHubRepo` | Delete a repository *(destructive, simulated)* | High → Re-Auth |
-
-### Slack — Bot Token + Step-Up
-| # | Tool | Action | Risk |
-|---|------|--------|------|
-| 8 | `listSlackChannels` | Browse accessible channels | Low |
-| 9 | `getSlackChannelHistory` | Read recent messages | Low |
-| 10 | `sendSlackMessage` | Post a message *(write)* | Medium → Step-Up |
-
-### Discord — Token Vault
-| # | Tool | Action | Risk |
-|---|------|--------|------|
-| 11 | `getDiscordProfile` | Get your Discord profile | Low |
-| 12 | `listDiscordGuilds` | List your servers | Low |
-| 13 | `getDiscordGuildMember` | Check membership & roles | Low |
-
-> **Why bot token for Slack?** Slack's OAuth doesn't issue refresh tokens, making Token Vault technically impossible. I use a workspace bot token instead — an intentional, documented architectural decision, not a shortcut.
-
----
-
-## Security Model Deep Dive
-
-| Principle | Implementation |
-|-----------|----------------|
-| **No raw credentials** | Token Vault stores and exchanges all OAuth tokens — app never touches them |
-| **Least privilege** | Each tool requests only the scopes it needs, nothing more |
-| **Short-lived tokens** | Refresh tokens → temporary access tokens per request |
-| **Risk classification** | Every tool tagged: `low / medium / high / unknown` |
-| **Fail-closed** | Unknown tools are blocked by default, not allowed |
-| **Step-up auth** | Write ops queue pending actions, wait for explicit user approval |
-| **Re-auth for high-risk** | Destructive operations require a fresh authentication session |
-| **Full audit trail** | Every decision logged: tool name, risk level, decision, userId, timestamp |
-| **Smart input validation** | `createGitHubIssue` validates repo existence before even queuing the approval |
-
----
-
-## Key Technical Highlights
-
-### Smart Repo Validation
-`createGitHubIssue` validates the repository exists **before** showing the approval card. If you pass `nexus-ai-agent` instead of `amgaikwad4588/nexus-ai-agent`, it fetches your repos, finds matches, and suggests the correct format — no 404 at execution time.
-
-### Persistent Audit Logging
-Audit logs persist to `data/audit-log.json` (capped at 500 entries), survive server restarts, tag every entry with `userId`, and are viewable as formatted raw JSON directly in the dashboard.
-
-### High-Risk Destructive Actions (Simulated)
-`deleteGitHubRepo` demonstrates the full HIGH-risk flow — risk engine returns REAUTH, chat UI renders a **red re-authentication card**, user must re-authenticate before approval. The deletion is **simulated** (verifies repo exists but doesn't actually delete), making it safe to demo all three risk tiers:
-- **LOW** (10 tools) — green auto-execute
-- **MEDIUM** (2 tools) — yellow step-up approval card
-- **HIGH** (1 tool) — red re-auth card
-
-### Risk-Aware Approval Cards
-The chat UI renders visually distinct cards based on risk level — **yellow** for medium-risk step-up, **red** for high-risk re-authentication. The buttons trigger different flows accordingly.
-
-### Error Handling & Resilience
-- **Crash-safe audit writes** — write to `.tmp` → backup `.bak` → rename to main; auto-recovers from backup on corruption
-- **Token exchange failures** — every failure path (missing config, expired refresh token, Auth0 API errors) is audited with details
-- **Tool execution timeouts** — 30-second deadline on every tool call and step-up execution; timeout → audit entry + graceful error response
-- **Performance metrics** — every tool call timed (ms), step-up responses include `executionMs` and `approvalLatencyMs`
-
-### Test Suite
-22 tests via Vitest covering the core security layers:
-- `risk-engine.test.ts` — 11 tests: all 4 decision paths (EXECUTE, STEP_UP, REAUTH, BLOCK), helper functions, fail-closed for unknown tools
-- `audit.test.ts` — 11 tests: persistence, stats aggregation, crash recovery from backup, double-corruption fallback
+1. **Connect** your Google, GitHub, and Discord accounts through Auth0 Connected Accounts. Tokens go straight to the Vault — our app never sees them. Slack connects via a workspace bot token.
+2. **Chat** with Nexus in natural language. It figures out which tools and services are needed.
+3. **Token Vault** exchanges your stored refresh tokens for short-lived, scoped access tokens — just enough permission to do the job.
+4. **Step-up auth** kicks in for write operations — the agent queues the action and waits for your explicit approval before executing.
+5. **Actions execute** against the real APIs, and every step is logged in the audit trail.
+6. **You stay in control.** Revoke access anytime. See everything the agent did. No black boxes.
 
 ---
 
@@ -335,75 +236,17 @@ src/
 
 ---
 
-## Lessons Learned: Real Pain Points
+## Security Model
 
-### 1. Account Linking vs. Connected Accounts
-Auth0’s **Account Linking** and **Connected Accounts** sound similar but are fundamentally different.
-
-- Account Linking → merges identities  
-- Connected Accounts → required for Token Vault  
-
-Using the wrong flow caused Token Vault to fail silently.
-
-**Takeaway:** Token Vault only works with **Connected Accounts + explicit enablement**.
-
----
-
-### 2. Slack OAuth Limitation
-Slack OAuth does **not provide refresh tokens**, making Token Vault unusable.
-
-**Solution:** Switched to **Bot Token (`xoxb-`)** approach.
-
-**Insight:** Not all providers are compatible with Token Vault → leads to inconsistent auth patterns.
-
----
-
-### 3. In-Memory Audit Logs
-Audit logs were initially stored in memory:
-- Lost on restart  
-- No traceability  
-
-**Fix:** Persistent JSON-based logging with:
-- `userId`, tool, risk, decision, timestamp  
-
-**Impact:** Improved **production readiness and accountability**.
-
----
-
-### 4. DPoP Tradeoff
-DPoP (sender-constrained tokens) improves security but requires:
-- Tenant-level setup  
-- Risk of breaking working flow  
-
-**Decision:** Deferred for stability.
-
-**Insight:** Tradeoff between **advanced security vs system reliability**.
-
----
-
-### 5. Natural Language vs API Requirements
-Users input:
-> create issue on nexus-ai-agent
-
-But GitHub requires:
-> owner/repo
-
-This caused failures after approval.
-
-**Fix:** Added **repo validation + suggestion before execution**.
-
-**Impact:** Better UX and fewer failed actions.
-
----
-
-### Key Insight
-Building secure AI agents is not just about calling APIs — it’s about handling **OAuth inconsistencies across providers, bridging the gap between natural language and API requirements, and making real-time security tradeoffs** without breaking the user experience.
-## What's Next
-
-- **DPoP / Sender-Constrained Tokens** — Planned enhancement, deferred to avoid destabilizing the Token Vault end-to-end flow pre-launch
-- **Scoped Access Controls** — Let users selectively enable/disable individual tools per service
-- **Multi-Tenant Support** — Bring Nexus to teams, not just individual users
-- **Additional Services** — Jira, Notion, Linear — any OAuth provider with refresh tokens can plug into Token Vault
+| Principle | How Nexus Implements It |
+|-----------|------------------------|
+| No raw credentials | Token Vault stores and manages all OAuth tokens |
+| Least privilege | Each tool requests only the scopes it needs |
+| Short-lived tokens | Refresh tokens are exchanged for temporary access tokens |
+| Risk classification | Every action is tagged low / medium / high / critical |
+| Step-up auth | Write operations require explicit user approval before executing |
+| Full audit trail | Every action logged with timestamp, scopes, and status |
+| Dual auth patterns | Token Vault for services with refresh tokens; Bot tokens for services without (Slack) |
 
 ---
 
