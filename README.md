@@ -67,7 +67,7 @@ This isn't a checkbox — it's a decision layer baked into every API call.
 
 ### 3. Persistent Audit Trail — Full Visibility, Always
 Every action is logged to a persistent JSON store with `userId`, scopes used, risk classification, decision outcome, and timestamp. It survives server restarts. You can view raw JSON directly in the dashboard.
-- **Per-Tool Permission Toggles** — Let users selectively enable/disable individual tools, not just entire services
+
 ---
 
 ## How It Works
@@ -103,7 +103,7 @@ Audit Trail logged (persistent JSON, userId-tagged)
 ## 12 Verified Tools Across 4 Services
 
 All 12 tools are **verified working end-to-end**, including the full Token Vault + step-up auth flow.
-
+- **Per-Tool Permission Toggles** — Let users selectively enable/disable individual tools, not just entire services
 ### Google — Token Vault
 | # | Tool | Action | Risk |
 |---|------|--------|------|
