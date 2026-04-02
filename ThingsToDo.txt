@@ -28,6 +28,22 @@
 ### 4. Insight Value — ✅ High
 - ✅ Pain points documented
 - ✅ Blog post for $250 bonus
+- ✅ Localhost vs Vercel deployment gotchas (see below)
+
+---
+
+## Pain Point: Localhost vs Vercel Deployment
+
+Everything works locally but breaks on Vercel. Three issues discovered:
+
+### 1. Read-only Filesystem
+Vercel serverless functions have a **read-only filesystem**. Any `fs.writeFileSync()` call crashes at runtime. Our audit log wrote to `data/audit-log.json` — every tool call crashed silently. Fix: in-memory fallback when `process.env.VERCEL` is detected.
+
+### 2. Token Vault Client Mismatch
+The Token Vault exchange **must use the same client app that issued the refresh token**. We used `AUTH0_M2M_CLIENT_ID` (M2M app) but the refresh token came from `AUTH0_CLIENT_ID` (regular web app). Locally both happened to work; on Vercel the exchange silently returned `undefined` with no error logged. Fix: use the regular web app credentials for `Auth0AI`.
+
+### 3. Next.js Cookie Context Lost During Streaming
+On Vercel, `auth0.getSession()` (which reads cookies via `next/headers`) **returns null when called inside async tool execution during `streamText()`**. Locally, Node.js maintains the `AsyncLocalStorage` context so cookies remain accessible throughout the request. On Vercel serverless, the context is lost by the time the AI model calls a tool. Fix: cache the refresh token at the start of the request handler before streaming begins.
 
 ---
 
