@@ -304,6 +304,48 @@ async function executeAction(
     };
   }
 
+  if (toolName === "sendDiscordMessage") {
+    const botToken = process.env.DISCORD_BOT_TOKEN;
+    if (!botToken) return { error: "DISCORD_BOT_TOKEN not configured" };
+
+    const { channelId, message } = args as { channelId: string; message: string };
+
+    const response = await fetch(`https://discord.com/api/v10/channels/${channelId}/messages`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bot ${botToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ content: message }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      return { error: `Discord API error: ${response.status} - ${errorText}` };
+    }
+
+    const msg = await response.json();
+
+    addAuditEntry({
+      userId,
+      action: `Sent Discord message to channel ${channelId}`,
+      service: "discord",
+      scopes: ["bot"],
+      status: "success",
+      details: `Message sent after step-up approval: "${message.slice(0, 50)}..."`,
+      riskLevel: "medium",
+      stepUpRequired: true,
+    });
+
+    return {
+      sent: true,
+      messageId: msg.id,
+      channelId: msg.channel_id,
+      timestamp: msg.timestamp,
+      message: message.slice(0, 100),
+    };
+  }
+
   if (toolName === "deleteGitHubRepo") {
     const { repo } = args as { repo: string; confirmName: string };
 

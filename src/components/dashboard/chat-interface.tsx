@@ -41,6 +41,7 @@ const toolIcons: Record<string, { icon: typeof Mail; color: string; service: str
   getDiscordProfile: { icon: MessageSquare, color: "text-indigo-400", service: "Discord" },
   listDiscordGuilds: { icon: MessageSquare, color: "text-indigo-400", service: "Discord" },
   getDiscordGuildMember: { icon: MessageSquare, color: "text-indigo-400", service: "Discord" },
+  sendDiscordMessage: { icon: MessageSquare, color: "text-indigo-400", service: "Discord" },
 };
 
 const suggestedPrompts = [
@@ -60,7 +61,7 @@ interface ApprovalState {
 }
 
 // Write tools that require step-up auth
-const WRITE_TOOLS = new Set(["createGitHubIssue", "sendSlackMessage"]);
+const WRITE_TOOLS = new Set(["createGitHubIssue", "sendSlackMessage", "sendDiscordMessage"]);
 
 // Risk level styling configuration
 const RISK_STYLES = {

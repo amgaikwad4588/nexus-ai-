@@ -23,6 +23,7 @@ import {
   getDiscordProfile,
   listDiscordGuilds,
   getDiscordGuildMember,
+  sendDiscordMessage,
 } from "@/lib/tools/discord";
 
 /**
@@ -136,6 +137,7 @@ export async function POST(req: Request) {
       getDiscordProfile,
       listDiscordGuilds,
       getDiscordGuildMember,
+      sendDiscordMessage,
     };
 
     // Route every tool through the centralized Risk Engine + permission check

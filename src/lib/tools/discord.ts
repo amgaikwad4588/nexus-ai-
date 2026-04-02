@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getAccessTokenFromTokenVault } from "@auth0/ai-vercel";
 import { withDiscordAccess } from "@/lib/auth0-ai";
 import { addAuditEntry } from "@/lib/audit";
+import { createPendingAction } from "@/lib/step-up";
 
 export const getDiscordProfile = withDiscordAccess(
   tool({
@@ -139,3 +140,87 @@ export const getDiscordGuildMember = withDiscordAccess(
     },
   })
 );
+
+function getDiscordBotToken(): string {
+  const token = process.env.DISCORD_BOT_TOKEN;
+  if (!token) throw new Error("DISCORD_BOT_TOKEN not configured");
+  return token;
+}
+
+export const sendDiscordMessage = tool({
+  description:
+    "Send a message to a Discord text channel. Requires the bot to be in the server with Send Messages permission. This is a WRITE action that requires step-up authentication.",
+  inputSchema: z.object({
+    channelId: z.string().describe("The Discord channel ID to send the message to"),
+    message: z.string().describe("The message content to send"),
+    userId: z.string().optional().describe("Auto-filled by system"),
+  }),
+  execute: async ({ channelId, message, userId }) => {
+    const pendingAction = createPendingAction(
+      "sendDiscordMessage",
+      { channelId, message },
+      userId || "unknown",
+      `Send message to channel: "${message.slice(0, 50)}..."`,
+      "discord",
+      "medium"
+    );
+
+    addAuditEntry({
+      action: `Step-up required: Send Discord message`,
+      service: "discord",
+      scopes: ["bot"],
+      status: "pending_approval",
+      details: `Write operation queued for approval: message to channel ${channelId}`,
+      riskLevel: "medium",
+      stepUpRequired: true,
+    });
+
+    return {
+      requiresApproval: true,
+      pendingActionId: pendingAction.id,
+      action: "sendDiscordMessage",
+      description: `Send message to Discord channel`,
+      details: { channelId, message: message.slice(0, 200) },
+      message: "This write operation requires your approval. Please confirm or deny this action.",
+    };
+  },
+});
+
+export const executeDiscordMessage = async (channelId: string, message: string) => {
+  const botToken = getDiscordBotToken();
+
+  addAuditEntry({
+    action: `Send Discord message to channel ${channelId}`,
+    service: "discord",
+    scopes: ["bot"],
+    status: "success",
+    details: "Sent message via Discord bot token",
+    riskLevel: "medium",
+    stepUpRequired: true,
+  });
+
+  const response = await fetch(
+    `https://discord.com/api/v10/channels/${channelId}/messages`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bot ${botToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ content: message }),
+    }
+  );
+
+  if (!response.ok) {
+    const err = await response.text();
+    return { error: `Discord API error: ${response.status} - ${err}` };
+  }
+
+  const msg = await response.json();
+  return {
+    sent: true,
+    messageId: msg.id,
+    channelId: msg.channel_id,
+    timestamp: msg.timestamp,
+  };
+};

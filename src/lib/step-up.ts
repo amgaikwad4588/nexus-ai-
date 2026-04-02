@@ -11,7 +11,7 @@ export interface PendingAction {
   status: "pending" | "approved" | "denied" | "expired" | "executed";
   result?: Record<string, unknown>;
   description: string;
-  service: "github" | "slack";
+  service: "github" | "slack" | "discord";
   riskLevel: "medium" | "high" | "critical";
 }
 
@@ -35,7 +35,7 @@ export function createPendingAction(
   args: Record<string, unknown>,
   userId: string,
   description: string,
-  service: "github" | "slack",
+  service: "github" | "slack" | "discord",
   riskLevel: "medium" | "high" | "critical" = "medium"
 ): PendingAction {
   const now = new Date();

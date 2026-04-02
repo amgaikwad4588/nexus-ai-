@@ -27,6 +27,7 @@ const TOOL_PERMISSIONS: Record<string, ToolPermission> = {
   getDiscordProfile: { service: "discord", requiredScopes: ["identify"], accessType: "read" },
   listDiscordGuilds: { service: "discord", requiredScopes: ["guilds"], accessType: "read" },
   getDiscordGuildMember: { service: "discord", requiredScopes: ["guilds.members.read"], accessType: "read" },
+  sendDiscordMessage: { service: "discord", requiredScopes: ["bot"], accessType: "write" },
 };
 
 // Map service id → Auth0 connection name (must match connections/route.ts SERVICES)
@@ -164,6 +165,19 @@ export async function checkToolPermission(
       };
     }
     return { allowed: true, service: "slack", accessType: perm.accessType };
+  }
+
+  // Discord write operations use a bot token
+  if (perm.service === "discord" && perm.accessType === "write") {
+    if (!process.env.DISCORD_BOT_TOKEN) {
+      return {
+        allowed: false,
+        reason: "Discord write operations are not configured. Please ask an admin to set up the Discord bot token.",
+        service: "discord",
+        accessType: perm.accessType,
+      };
+    }
+    return { allowed: true, service: "discord", accessType: perm.accessType };
   }
 
   // For all other services: check that the user has a connected account

@@ -51,10 +51,11 @@ const TOOL_RISK_MAP: Record<string, ToolRiskEntry> = {
   getSlackChannelHistory: { risk: "low",    service: "slack", description: "Read channel history" },
   sendSlackMessage:       { risk: "medium", service: "slack", description: "Send message (write)" },
 
-  // ── Discord (read-only) ──
+  // ── Discord ──
   getDiscordProfile:      { risk: "low",    service: "discord", description: "Read Discord profile" },
   listDiscordGuilds:      { risk: "low",    service: "discord", description: "List Discord servers" },
   getDiscordGuildMember:  { risk: "low",    service: "discord", description: "Check guild membership" },
+  sendDiscordMessage:     { risk: "medium", service: "discord", description: "Send message (write)" },
 
   // ── High-risk operations (destructive / bulk) ──
   // These represent the class of actions that require re-authentication.
