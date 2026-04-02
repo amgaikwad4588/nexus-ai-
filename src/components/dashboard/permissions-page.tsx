@@ -8,6 +8,7 @@ import {
   Eye,
   AlertTriangle,
   CheckCircle,
+  XCircle,
   Mail,
   Calendar,
   GitBranch,
@@ -18,6 +19,9 @@ import {
   Pencil,
   Clock,
   Bot,
+  Info,
+  ShieldCheck,
+  ShieldAlert,
 } from "lucide-react";
 import {
   Card,
@@ -166,6 +170,12 @@ const servicePermissions: {
         description: "View member info in servers",
         riskLevel: "medium",
         readWrite: "read",
+      },
+      {
+        scope: "bot",
+        description: "Send messages to channels (requires bot token)",
+        riskLevel: "medium",
+        readWrite: "write",
       },
     ],
   },
@@ -386,18 +396,25 @@ export function PermissionsPage() {
                   </p>
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 ml-8">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 ml-8">
                 <div className="flex items-center gap-2 p-2 rounded-md bg-accent/20 border border-border/30">
-                  <CheckCircle className="w-3.5 h-3.5 text-green-400 shrink-0" />
+                  <CheckCircle className="w-3.5 h-3.5 text-orange-400 shrink-0" />
                   <span className="text-xs">
-                    <span className="font-mono text-green-400">createGitHubIssue</span>
+                    <span className="font-mono text-orange-400">createGitHubIssue</span>
                     {" "}&mdash; requires approval
                   </span>
                 </div>
                 <div className="flex items-center gap-2 p-2 rounded-md bg-accent/20 border border-border/30">
-                  <CheckCircle className="w-3.5 h-3.5 text-green-400 shrink-0" />
+                  <CheckCircle className="w-3.5 h-3.5 text-purple-400 shrink-0" />
                   <span className="text-xs">
-                    <span className="font-mono text-green-400">sendSlackMessage</span>
+                    <span className="font-mono text-purple-400">sendSlackMessage</span>
+                    {" "}&mdash; requires approval
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 p-2 rounded-md bg-accent/20 border border-border/30">
+                  <CheckCircle className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                  <span className="text-xs">
+                    <span className="font-mono text-indigo-400">sendDiscordMessage</span>
                     {" "}&mdash; requires approval
                   </span>
                 </div>
@@ -503,7 +520,7 @@ export function PermissionsPage() {
 
                   {/* ── Sub-permissions tree ── */}
                   <CardContent className="pt-4">
-                    <div className="relative ml-5 pl-4 border-l-2 border-border/40 space-y-2">
+                    <div className="relative ml-5 pl-4 border-l-2 border-border/40 space-y-3">
                       {service.scopes.map((scope, idx) => {
                         const risk = riskColors[scope.riskLevel];
                         const enabled = serviceEnabled && isEnabled(scope.scope);
@@ -517,68 +534,96 @@ export function PermissionsPage() {
                               <div className="absolute -left-2.25 top-1/2 bottom-0 w-0.5 bg-card" />
                             )}
                             <div
-                              className={`flex items-center justify-between p-3 rounded-lg border transition-all duration-200 ${
+                              className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border transition-all duration-200 gap-3 ${
                                 !serviceEnabled
                                   ? "bg-zinc-900/30 border-zinc-800/30 opacity-40"
                                   : enabled
                                     ? "bg-accent/20 border-border/30"
-                                    : "bg-red-950/20 border-red-500/20 opacity-75"
+                                    : "bg-red-950/20 border-red-500/20"
                               }`}
                             >
-                              <div className="flex items-center gap-3">
+                              <div className="flex items-start gap-3 flex-1">
                                 {isSaving ? (
-                                  <div className="w-11 h-6 flex items-center justify-center">
+                                  <div className="w-11 h-6 flex items-center justify-center mt-0.5">
                                     <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
                                   </div>
                                 ) : (
-                                  <CreativeToggle
-                                    checked={enabled}
-                                    onChange={() => toggleScope(scope.scope)}
+                                  <button
+                                    onClick={() => !isSaving && serviceEnabled && toggleScope(scope.scope)}
                                     disabled={isSaving || !serviceEnabled}
-                                    color={!serviceEnabled ? "emerald" : enabled ? "emerald" : "red"}
-                                    size="md"
-                                  />
+                                    className={`relative shrink-0 mt-0.5 ${
+                                      !serviceEnabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+                                    }`}
+                                  >
+                                    <div
+                                      className={`w-14 h-8 rounded-full flex items-center px-1 transition-all duration-300 ${
+                                        enabled
+                                          ? scope.readWrite === "write"
+                                            ? "bg-yellow-500 shadow-lg shadow-yellow-500/50"
+                                            : "bg-emerald-500 shadow-lg shadow-emerald-500/50"
+                                          : "bg-zinc-700/60 hover:bg-zinc-600"
+                                      }`}
+                                    >
+                                      <div
+                                        className={`w-6 h-6 rounded-full bg-white shadow-md flex items-center justify-center transition-transform duration-200 ${
+                                          enabled ? "translate-x-6" : "translate-x-0"
+                                        }`}
+                                      >
+                                        {enabled ? (
+                                          <ShieldCheck className={`w-3.5 h-3.5 ${scope.readWrite === "write" ? "text-yellow-600" : "text-emerald-600"}`} />
+                                        ) : (
+                                          <XCircle className="w-3.5 h-3.5 text-zinc-400" />
+                                        )}
+                                      </div>
+                                    </div>
+                                  </button>
                                 )}
-                                <div
-                                  className={`w-2 h-2 rounded-full ${
-                                    !serviceEnabled
-                                      ? "bg-zinc-600"
-                                      : scope.readWrite === "read"
-                                        ? "bg-green-400"
-                                        : "bg-yellow-400"
-                                  }`}
-                                />
-                                <div>
-                                  <p className={`text-sm font-mono font-medium ${!serviceEnabled || !enabled ? "line-through text-muted-foreground" : ""}`}>
-                                    {scope.scope}
-                                  </p>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <p className={`text-sm font-mono font-medium ${!serviceEnabled || !enabled ? "text-muted-foreground" : ""}`}>
+                                      {scope.scope}
+                                    </p>
+                                    <div className="flex items-center gap-1.5">
+                                      <Badge
+                                        variant="outline"
+                                        className={`text-[10px] px-1.5 py-0 ${
+                                          scope.readWrite === "write"
+                                            ? "text-yellow-400 border-yellow-400/30 bg-yellow-400/10"
+                                            : "text-green-400 border-green-400/30 bg-green-400/10"
+                                        }`}
+                                      >
+                                        {scope.readWrite === "write" ? (
+                                          <><Pencil className="w-2.5 h-2.5 mr-1" />Write</>
+                                        ) : (
+                                          <><Eye className="w-2.5 h-2.5 mr-1" />Read</>
+                                        )}
+                                      </Badge>
+                                      {scope.riskLevel !== "low" && (
+                                        <Badge
+                                          variant="outline"
+                                          className={`text-[10px] px-1.5 py-0 ${risk.text} ${risk.border} ${risk.bg}`}
+                                        >
+                                          {scope.riskLevel === "high" ? (
+                                            <><ShieldAlert className="w-2.5 h-2.5 mr-1" />High Risk</>
+                                          ) : (
+                                            <><AlertTriangle className="w-2.5 h-2.5 mr-1" />Medium Risk</>
+                                          )}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </div>
                                   <p className="text-xs text-muted-foreground">
                                     {scope.description}
                                   </p>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-2">
-                                <Badge
-                                  variant="outline"
-                                  className={`text-xs ${!serviceEnabled ? "text-zinc-500 border-zinc-700 bg-zinc-800/30" : `${risk.text} ${risk.border} ${risk.bg}`}`}
-                                >
-                                  {scope.riskLevel}
-                                </Badge>
-                                <Badge variant="secondary" className={`text-xs ${!serviceEnabled ? "opacity-50" : ""}`}>
-                                  {scope.readWrite}
-                                </Badge>
-                                <Badge
-                                  variant="outline"
-                                  className={`text-xs ${
-                                    !serviceEnabled
-                                      ? "text-zinc-500 border-zinc-700 bg-zinc-800/30"
-                                      : enabled
-                                        ? "text-emerald-400 border-emerald-400/30 bg-emerald-400/10"
-                                        : "text-red-400 border-red-400/30 bg-red-400/10"
-                                  }`}
-                                >
-                                  {!serviceEnabled ? "Disabled" : enabled ? "Allowed" : "Denied"}
-                                </Badge>
+                              <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4">
+                                <div className="flex items-center gap-2">
+                                  <span className={`text-xs font-medium ${enabled ? "text-emerald-400" : "text-red-400"}`}>
+                                    {enabled ? "Allowed" : "Blocked"}
+                                  </span>
+                                  <div className={`w-2 h-2 rounded-full ${enabled ? "bg-emerald-400 animate-pulse" : "bg-red-400"}`} />
+                                </div>
                               </div>
                             </div>
                           </div>

@@ -21,6 +21,7 @@ import {
   CheckCircle,
   XCircle,
   AlertTriangle,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -113,8 +114,10 @@ function StepUpApprovalCard({
 }) {
   const state = approvalState?.status || "pending";
   const isGitHub = action === "createGitHubIssue";
+  const isDiscord = action === "sendDiscordMessage";
+  const isSlack = action === "sendSlackMessage";
   const Icon = isGitHub ? GitBranch : MessageSquare;
-  const serviceColor = isGitHub ? "text-orange-400" : "text-purple-400";
+  const serviceColor = isGitHub ? "text-orange-400" : isDiscord ? "text-indigo-400" : "text-purple-400";
   const style = RISK_STYLES[riskLevel] || RISK_STYLES.medium;
   const HeaderIcon = style.headerIcon;
 
@@ -147,24 +150,29 @@ function StepUpApprovalCard({
         <Icon className={`w-5 h-5 ${serviceColor} mt-0.5 shrink-0`} />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium">{description}</p>
-          {Boolean("repo" in details && details.repo) && (
+          {isGitHub && Boolean("repo" in details && details.repo) && (
             <p className="text-xs text-muted-foreground mt-1">
               Repository: <span className="font-mono">{String(details.repo)}</span>
             </p>
           )}
-          {Boolean("title" in details && details.title) && (
+          {isGitHub && Boolean("title" in details && details.title) && (
             <p className="text-xs text-muted-foreground">
               Title: {String(details.title)}
             </p>
           )}
-          {Boolean("channel" in details && details.channel) && (
+          {(isSlack) && Boolean("channel" in details && details.channel) && (
             <p className="text-xs text-muted-foreground mt-1">
               Channel: <span className="font-mono">#{String(details.channel)}</span>
             </p>
           )}
+          {isDiscord && Boolean("channelId" in details && details.channelId) && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Channel ID: <span className="font-mono">{String(details.channelId)}</span>
+            </p>
+          )}
           {Boolean("message" in details && details.message) && (
-            <p className="text-xs text-muted-foreground truncate">
-              Message: &ldquo;{String(details.message).slice(0, 100)}&rdquo;
+            <p className="text-xs text-muted-foreground mt-1">
+              Message: <span className="italic">&ldquo;{String(details.message).slice(0, 100)}&rdquo;</span>
             </p>
           )}
         </div>
@@ -223,9 +231,21 @@ function StepUpApprovalCard({
               {String(approvalState.result.url)}
             </a>
           )}
-          {Boolean(approvalState.result.sent) && (
+          {isDiscord && Boolean(approvalState.result.sent) && (
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <MessageSquare className="w-3 h-3" />
+              Message sent to Discord channel
+            </p>
+          )}
+          {isSlack && Boolean(approvalState.result.sent) && (
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <MessageSquare className="w-3 h-3" />
+              Message sent to Slack channel
+            </p>
+          )}
+          {Boolean(approvalState.result.messageId) && (
             <p className="text-xs text-muted-foreground">
-              Message sent to channel successfully
+              Message ID: <span className="font-mono">{String(approvalState.result.messageId)}</span>
             </p>
           )}
         </div>
@@ -255,6 +275,47 @@ function StepUpApprovalCard({
   );
 }
 
+interface Toast {
+  id: string;
+  message: string;
+  type: "success" | "error" | "info";
+}
+
+function ToastContainer({ toasts, onDismiss }: { toasts: Toast[]; onDismiss: (id: string) => void }) {
+  return (
+    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm">
+      <AnimatePresence>
+        {toasts.map((toast) => (
+          <motion.div
+            key={toast.id}
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg border shadow-lg ${
+              toast.type === "success"
+                ? "bg-green-500/10 border-green-500/30 text-green-400"
+                : toast.type === "error"
+                  ? "bg-red-500/10 border-red-500/30 text-red-400"
+                  : "bg-blue-500/10 border-blue-500/30 text-blue-400"
+            }`}
+          >
+            {toast.type === "success" && <Check className="w-4 h-4 shrink-0" />}
+            {toast.type === "error" && <XCircle className="w-4 h-4 shrink-0" />}
+            {toast.type === "info" && <AlertTriangle className="w-4 h-4 shrink-0" />}
+            <span className="text-sm flex-1">{toast.message}</span>
+            <button
+              onClick={() => onDismiss(toast.id)}
+              className="text-xs hover:opacity-70 transition-opacity"
+            >
+              Dismiss
+            </button>
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export function ChatInterface() {
   const { messages, sendMessage, status, error } = useChat({
     transport: new DefaultChatTransport({ api: "/api/chat" }),
@@ -264,8 +325,21 @@ export function ChatInterface() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [approvalStates, setApprovalStates] = useState<Record<string, ApprovalState>>({});
+  const [toasts, setToasts] = useState<Toast[]>([]);
 
   const isLoading = status === "submitted" || status === "streaming";
+
+  const addToast = useCallback((message: string, type: Toast["type"]) => {
+    const id = crypto.randomUUID();
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 5000);
+  }, []);
+
+  const dismissToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
 
   const handleApprove = useCallback(async (actionId: string) => {
     setApprovalStates((prev) => ({
@@ -288,6 +362,7 @@ export function ChatInterface() {
         ...prev,
         [actionId]: { status: "executed", result: data.result },
       }));
+      addToast("Action executed successfully", "success");
     } catch (err) {
       setApprovalStates((prev) => ({
         ...prev,
@@ -296,14 +371,16 @@ export function ChatInterface() {
           error: err instanceof Error ? err.message : "Unknown error",
         },
       }));
+      addToast(err instanceof Error ? err.message : "Action failed", "error");
     }
-  }, []);
+  }, [addToast]);
 
   const handleDeny = useCallback(async (actionId: string) => {
     setApprovalStates((prev) => ({
       ...prev,
       [actionId]: { status: "denied" },
     }));
+    addToast("Action denied", "info");
 
     try {
       await fetch("/api/step-up", {
@@ -613,6 +690,7 @@ export function ChatInterface() {
           audit trail
         </p>
       </div>
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 }
