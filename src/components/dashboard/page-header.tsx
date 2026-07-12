@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
-import DecryptedText from "@/components/ui/decrypted-text";
 import { fadeUp } from "./motion";
 
 interface PageHeaderProps {
@@ -17,17 +16,9 @@ export function PageHeader({ icon: Icon, title, description, actions }: PageHead
     <motion.div variants={fadeUp}>
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
+          <h1 className="text-2xl font-semibold tracking-tight flex items-center gap-2.5">
             <Icon className="w-6 h-6 text-primary" />
-            <DecryptedText
-              text={title}
-              animateOn="view"
-              speed={35}
-              sequential
-              revealDirection="start"
-              className="text-foreground"
-              encryptedClassName="text-muted-foreground/40"
-            />
+            {title}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">{description}</p>
         </div>

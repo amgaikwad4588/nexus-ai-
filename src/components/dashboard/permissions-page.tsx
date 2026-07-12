@@ -8,7 +8,6 @@ import {
   Eye,
   AlertTriangle,
   CheckCircle,
-  XCircle,
   Mail,
   GitBranch,
   MessageSquare,
@@ -16,8 +15,6 @@ import {
   KeyRound,
   Loader2,
   Pencil,
-  Clock,
-  ShieldCheck,
   ShieldAlert,
 } from "lucide-react";
 import {
@@ -46,7 +43,6 @@ const servicePermissions: {
   icon: typeof Mail;
   color: string;
   bgColor: string;
-  lastAccessed: string | null;
   scopes: ScopeInfo[];
 }[] = [
   {
@@ -55,7 +51,6 @@ const servicePermissions: {
     icon: Mail,
     color: "text-red-400",
     bgColor: "bg-red-400/10",
-    lastAccessed: "15 mins ago",
     scopes: [
       {
         scope: "gmail.readonly",
@@ -83,7 +78,6 @@ const servicePermissions: {
     icon: GitBranch,
     color: "text-white",
     bgColor: "bg-white/10",
-    lastAccessed: "2 mins ago",
     scopes: [
       {
         scope: "read:user",
@@ -111,7 +105,6 @@ const servicePermissions: {
     icon: MessageSquare,
     color: "text-purple-400",
     bgColor: "bg-purple-400/10",
-    lastAccessed: "1 hour ago",
     scopes: [
       {
         scope: "channels:read",
@@ -145,7 +138,6 @@ const servicePermissions: {
     icon: MessageSquare,
     color: "text-indigo-400",
     bgColor: "bg-indigo-400/10",
-    lastAccessed: null,
     scopes: [
       {
         scope: "identify",
@@ -290,8 +282,8 @@ export function PermissionsPage() {
         {/* Header */}
         <PageHeader
           icon={Shield}
-          title="Permission Dashboard"
-          description="Control exactly what your AI agent can access. Uncheck a scope to block the AI from using it — even if the service is connected."
+          title="Permissions"
+          description="Control exactly what your AI agent can access. Disable a scope to block the agent from using it, even if the service is connected."
         />
 
         {/* Stats */}
@@ -329,20 +321,16 @@ export function PermissionsPage() {
         {/* Security Model Info */}
         <motion.div variants={fadeUp}>
           <Card className="bg-primary/5 border-primary/20">
-            <CardContent className="pt-6">
-              <div className="flex items-start gap-3">
-                <Shield className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-sm font-medium">
-                    Server-Side Enforcement
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    These toggles are enforced on the server before every tool
-                    call. If you uncheck a scope, the AI will be blocked from
-                    using any tool that requires it — the request never reaches
-                    the external API.
-                  </p>
-                </div>
+            <CardContent className="flex items-start gap-3">
+              <Shield className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+              <div>
+                <p className="text-sm font-medium">Server-side enforcement</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  These toggles are enforced on the server before every tool
+                  call. If you disable a scope, the agent is blocked from
+                  using any tool that requires it. The request never reaches
+                  the external API.
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -351,44 +339,34 @@ export function PermissionsPage() {
         {/* Step-Up Auth Enforcement */}
         <motion.div variants={fadeUp}>
           <Card className="bg-yellow-500/5 border-yellow-500/20">
-            <CardContent className="pt-6 space-y-3">
+            <CardContent className="space-y-3">
               <div className="flex items-start gap-3">
                 <AlertTriangle className="w-5 h-5 text-yellow-400 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-sm font-medium text-yellow-400">
-                    Step-Up Authentication — Enforced
+                  <p className="text-sm font-medium">
+                    Step-up authentication is enforced
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Write operations are blocked until the user explicitly
-                    approves each action. The AI agent cannot execute writes
-                    without human authorization.
+                    Write operations are blocked until you explicitly approve
+                    each action. The agent cannot execute writes without human
+                    authorization.
                   </p>
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 ml-8">
-                <div className="flex items-center gap-2 p-2 rounded-md bg-accent/20 border border-border/30">
-                  <CheckCircle className="w-3.5 h-3.5 text-orange-400 shrink-0" />
-                  <span className="text-xs">
-                    <span className="font-mono text-orange-400">createGitHubIssue</span>
-                    {" "}&mdash; requires approval
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 p-2 rounded-md bg-accent/20 border border-border/30">
-                  <CheckCircle className="w-3.5 h-3.5 text-purple-400 shrink-0" />
-                  <span className="text-xs">
-                    <span className="font-mono text-purple-400">sendSlackMessage</span>
-                    {" "}&mdash; requires approval
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 p-2 rounded-md bg-accent/20 border border-border/30">
-                  <CheckCircle className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-                  <span className="text-xs">
-                    <span className="font-mono text-indigo-400">sendDiscordMessage</span>
-                    {" "}&mdash; requires approval
-                  </span>
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:ml-8">
+                {["createGitHubIssue", "sendSlackMessage", "sendDiscordMessage"].map(
+                  (tool) => (
+                    <div
+                      key={tool}
+                      className="flex items-center gap-2 p-2 rounded-md bg-accent/20 border border-border/30"
+                    >
+                      <Lock className="w-3.5 h-3.5 text-yellow-400 shrink-0" />
+                      <span className="text-xs font-mono truncate">{tool}</span>
+                    </div>
+                  )
+                )}
               </div>
-              <p className="text-[10px] text-muted-foreground ml-8">
+              <p className="text-xs text-muted-foreground sm:ml-8">
                 Approved actions create a step-up session valid for 10 minutes.
                 All approvals and denials are logged in the audit trail.
               </p>
@@ -396,7 +374,7 @@ export function PermissionsPage() {
           </Card>
         </motion.div>
 
-        {/* Service Permissions — Hierarchical */}
+        {/* Service Permissions */}
         {loading ? (
           <motion.div variants={fadeUp} className="flex items-center justify-center py-12">
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
@@ -409,54 +387,28 @@ export function PermissionsPage() {
             const enabledScopeCount = service.scopes.filter((s) => isEnabled(s.scope)).length;
             return (
               <motion.div key={service.id} variants={fadeUp}>
-                <Card className={!serviceEnabled ? "opacity-90" : ""}>
-                  {/* ── Master toggle row ── */}
-                  <CardHeader className="pb-0">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
+                <Card>
+                  {/* Service header with master toggles */}
+                  <CardHeader className="border-b [.border-b]:pb-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3 min-w-0">
                         <div
-                          className={`w-10 h-10 rounded-lg ${serviceEnabled ? service.bgColor : "bg-muted/50"} flex items-center justify-center transition-colors`}
+                          className={`w-10 h-10 rounded-lg ${serviceEnabled ? service.bgColor : "bg-muted/50"} flex items-center justify-center transition-colors shrink-0`}
                         >
                           <Icon className={`w-5 h-5 ${serviceEnabled ? service.color : "text-muted-foreground"}`} />
                         </div>
-                        <div>
+                        <div className="min-w-0">
                           <CardTitle className={`text-base ${!serviceEnabled ? "text-muted-foreground" : ""}`}>
                             {service.name}
                           </CardTitle>
-                          <div className="flex items-center gap-3 mt-0.5">
-                            <CardDescription className="text-xs">
-                              {serviceEnabled
-                                ? `${enabledScopeCount}/${service.scopes.length} scopes enabled`
-                                : "All access blocked"}
-                            </CardDescription>
-                            <span className="text-border">|</span>
-                            <div className="flex items-center gap-1">
-                              <Clock className="w-3 h-3 text-muted-foreground" />
-                              <span className="text-[11px] text-muted-foreground">
-                                {service.lastAccessed ? (
-                                  <span
-                                    className={
-                                      service.lastAccessed.includes("min")
-                                        ? "text-emerald-400"
-                                        : "text-foreground"
-                                    }
-                                  >
-                                    {service.lastAccessed}
-                                  </span>
-                                ) : (
-                                  <span className="text-muted-foreground">Never</span>
-                                )}
-                              </span>
-                            </div>
-                          </div>
+                          <CardDescription className="text-xs">
+                            {serviceEnabled
+                              ? `${enabledScopeCount} of ${service.scopes.length} scopes enabled`
+                              : "All access blocked"}
+                          </CardDescription>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        {!serviceEnabled && (
-                          <Badge variant="outline" className="text-xs text-muted-foreground border-border bg-muted/30">
-                            Disabled
-                          </Badge>
-                        )}
+                      <div className="flex items-center gap-4 shrink-0">
                         {serviceEnabled && (
                           <div className="flex items-center gap-2">
                             <Pencil
@@ -466,7 +418,7 @@ export function PermissionsPage() {
                                   : "text-muted-foreground"
                               }`}
                             />
-                            <span className="text-[11px] text-muted-foreground hidden sm:inline">
+                            <span className="text-xs text-muted-foreground hidden sm:inline">
                               Write
                             </span>
                             <CreativeToggle
@@ -476,6 +428,14 @@ export function PermissionsPage() {
                               size="sm"
                             />
                           </div>
+                        )}
+                        {!serviceEnabled && (
+                          <Badge
+                            variant="outline"
+                            className="text-xs text-muted-foreground border-border bg-muted/30"
+                          >
+                            Disabled
+                          </Badge>
                         )}
                         <CreativeToggle
                           checked={serviceEnabled}
@@ -487,118 +447,86 @@ export function PermissionsPage() {
                     </div>
                   </CardHeader>
 
-                  {/* ── Sub-permissions tree ── */}
-                  <CardContent className="pt-4">
-                    <div className="relative ml-5 pl-4 border-l-2 border-border/40 space-y-3">
-                      {service.scopes.map((scope, idx) => {
-                        const risk = riskColors[scope.riskLevel];
-                        const enabled = serviceEnabled && isEnabled(scope.scope);
-                        const isSaving = saving === scope.scope;
-                        const isLast = idx === service.scopes.length - 1;
-                        return (
-                          <div key={scope.scope} className="relative">
-                            {/* Tree branch connector */}
-                            <div className="absolute -left-4 top-1/2 w-3 h-px bg-border/40" />
-                            {isLast && (
-                              <div className="absolute -left-2.25 top-1/2 bottom-0 w-0.5 bg-card" />
+                  {/* Scope list */}
+                  <CardContent
+                    className={`divide-y divide-border/40 ${!serviceEnabled ? "opacity-50" : ""}`}
+                  >
+                    {service.scopes.map((scope) => {
+                      const risk = riskColors[scope.riskLevel];
+                      const enabled = serviceEnabled && isEnabled(scope.scope);
+                      const isSaving = saving === scope.scope;
+                      return (
+                        <div
+                          key={scope.scope}
+                          className="flex items-start justify-between gap-4 py-3 first:pt-0 last:pb-0"
+                        >
+                          <div className="flex items-start gap-3 min-w-0">
+                            {isSaving ? (
+                              <div className="w-9 h-5 flex items-center justify-center shrink-0 mt-0.5">
+                                <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                              </div>
+                            ) : (
+                              <div className="mt-0.5">
+                                <CreativeToggle
+                                  checked={enabled}
+                                  onChange={() => toggleScope(scope.scope)}
+                                  disabled={isSaving || !serviceEnabled}
+                                  color={scope.readWrite === "write" ? "yellow" : "emerald"}
+                                  size="sm"
+                                />
+                              </div>
                             )}
-                            <div
-                              className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border transition-all duration-200 gap-3 ${
-                                !serviceEnabled
-                                  ? "bg-muted/20 border-border/30 opacity-40"
-                                  : enabled
-                                    ? "bg-accent/20 border-border/30"
-                                    : "bg-red-500/5 border-red-500/20"
-                              }`}
-                            >
-                              <div className="flex items-start gap-3 flex-1">
-                                {isSaving ? (
-                                  <div className="w-11 h-6 flex items-center justify-center mt-0.5">
-                                    <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
-                                  </div>
-                                ) : (
-                                  <button
-                                    onClick={() => !isSaving && serviceEnabled && toggleScope(scope.scope)}
-                                    disabled={isSaving || !serviceEnabled}
-                                    className={`relative shrink-0 mt-0.5 ${
-                                      !serviceEnabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"
-                                    }`}
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p
+                                  className={`text-sm font-mono font-medium ${
+                                    !enabled ? "text-muted-foreground" : ""
+                                  }`}
+                                >
+                                  {scope.scope}
+                                </p>
+                                <Badge
+                                  variant="outline"
+                                  className={`text-[10px] px-1.5 py-0 ${
+                                    scope.readWrite === "write"
+                                      ? "text-yellow-400 border-yellow-400/30 bg-yellow-400/10"
+                                      : "text-green-400 border-green-400/30 bg-green-400/10"
+                                  }`}
+                                >
+                                  {scope.readWrite === "write" ? (
+                                    <><Pencil className="w-2.5 h-2.5 mr-1" />Write</>
+                                  ) : (
+                                    <><Eye className="w-2.5 h-2.5 mr-1" />Read</>
+                                  )}
+                                </Badge>
+                                {scope.riskLevel !== "low" && (
+                                  <Badge
+                                    variant="outline"
+                                    className={`text-[10px] px-1.5 py-0 ${risk.text} ${risk.border} ${risk.bg}`}
                                   >
-                                    <div
-                                      className={`w-14 h-8 rounded-full flex items-center px-1 transition-all duration-300 ${
-                                        enabled
-                                          ? scope.readWrite === "write"
-                                            ? "bg-yellow-500 shadow-lg shadow-yellow-500/50"
-                                            : "bg-emerald-500 shadow-lg shadow-emerald-500/50"
-                                          : "bg-muted-foreground/30 hover:bg-muted-foreground/40"
-                                      }`}
-                                    >
-                                      <div
-                                        className={`w-6 h-6 rounded-full bg-white shadow-md flex items-center justify-center transition-transform duration-200 ${
-                                          enabled ? "translate-x-6" : "translate-x-0"
-                                        }`}
-                                      >
-                                        {enabled ? (
-                                          <ShieldCheck className={`w-3.5 h-3.5 ${scope.readWrite === "write" ? "text-yellow-600" : "text-emerald-600"}`} />
-                                        ) : (
-                                          <XCircle className="w-3.5 h-3.5 text-muted-foreground" />
-                                        )}
-                                      </div>
-                                    </div>
-                                  </button>
+                                    {scope.riskLevel === "high" ? (
+                                      <><ShieldAlert className="w-2.5 h-2.5 mr-1" />High risk</>
+                                    ) : (
+                                      <><AlertTriangle className="w-2.5 h-2.5 mr-1" />Medium risk</>
+                                    )}
+                                  </Badge>
                                 )}
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <p className={`text-sm font-mono font-medium ${!serviceEnabled || !enabled ? "text-muted-foreground" : ""}`}>
-                                      {scope.scope}
-                                    </p>
-                                    <div className="flex items-center gap-1.5">
-                                      <Badge
-                                        variant="outline"
-                                        className={`text-[10px] px-1.5 py-0 ${
-                                          scope.readWrite === "write"
-                                            ? "text-yellow-400 border-yellow-400/30 bg-yellow-400/10"
-                                            : "text-green-400 border-green-400/30 bg-green-400/10"
-                                        }`}
-                                      >
-                                        {scope.readWrite === "write" ? (
-                                          <><Pencil className="w-2.5 h-2.5 mr-1" />Write</>
-                                        ) : (
-                                          <><Eye className="w-2.5 h-2.5 mr-1" />Read</>
-                                        )}
-                                      </Badge>
-                                      {scope.riskLevel !== "low" && (
-                                        <Badge
-                                          variant="outline"
-                                          className={`text-[10px] px-1.5 py-0 ${risk.text} ${risk.border} ${risk.bg}`}
-                                        >
-                                          {scope.riskLevel === "high" ? (
-                                            <><ShieldAlert className="w-2.5 h-2.5 mr-1" />High Risk</>
-                                          ) : (
-                                            <><AlertTriangle className="w-2.5 h-2.5 mr-1" />Medium Risk</>
-                                          )}
-                                        </Badge>
-                                      )}
-                                    </div>
-                                  </div>
-                                  <p className="text-xs text-muted-foreground">
-                                    {scope.description}
-                                  </p>
-                                </div>
                               </div>
-                              <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4">
-                                <div className="flex items-center gap-2">
-                                  <span className={`text-xs font-medium ${enabled ? "text-emerald-400" : "text-red-400"}`}>
-                                    {enabled ? "Allowed" : "Blocked"}
-                                  </span>
-                                  <div className={`w-2 h-2 rounded-full ${enabled ? "bg-emerald-400 animate-pulse" : "bg-red-400"}`} />
-                                </div>
-                              </div>
+                              <p className="text-xs text-muted-foreground mt-0.5">
+                                {scope.description}
+                              </p>
                             </div>
                           </div>
-                        );
-                      })}
-                    </div>
+                          <span
+                            className={`text-xs font-medium shrink-0 mt-1 ${
+                              enabled ? "text-emerald-400" : "text-red-400"
+                            }`}
+                          >
+                            {enabled ? "Allowed" : "Blocked"}
+                          </span>
+                        </div>
+                      );
+                    })}
                   </CardContent>
                 </Card>
               </motion.div>
@@ -626,7 +554,7 @@ export function PermissionsPage() {
                   {
                     step: "2",
                     title: "Permission Check",
-                    desc: "Server checks if user has enabled the required scopes",
+                    desc: "Server checks if you have enabled the required scopes",
                   },
                   {
                     step: "3",
@@ -641,14 +569,14 @@ export function PermissionsPage() {
                   {
                     step: "5",
                     title: "Audit Log",
-                    desc: "Action + approval decision logged with scope and risk",
+                    desc: "Action and approval decision logged with scope and risk",
                   },
                 ].map((item) => (
                   <div
                     key={item.step}
                     className="p-3 rounded-lg bg-accent/20 text-center"
                   >
-                    <div className="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-sm flex items-center justify-center mx-auto mb-2">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm flex items-center justify-center mx-auto mb-2">
                       {item.step}
                     </div>
                     <p className="text-xs font-medium">{item.title}</p>

@@ -8,7 +8,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
   Send,
-  Sparkles,
+  Network,
   User,
   Loader2,
   Mail,
@@ -31,7 +31,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import BlurText from "@/components/ui/blur-text";
 
 const toolIcons: Record<string, { icon: typeof Mail; color: string; service: string }> = {
   searchGmail: { icon: Mail, color: "text-red-400", service: "Google" },
@@ -430,7 +429,7 @@ export function ChatInterface() {
       {/* Header */}
       <div className="px-6 py-4 border-b border-border/50 flex items-center gap-3">
         <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-          <Sparkles className="w-4 h-4 text-primary" />
+          <Network className="w-4 h-4 text-primary" />
         </div>
         <div>
           <h1 className="font-semibold text-sm">Nexus AI Agent</h1>
@@ -454,27 +453,17 @@ export function ChatInterface() {
               animate={{ opacity: 1, y: 0 }}
               className="text-center py-12"
             >
-              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4 glow">
-                <Sparkles className="w-8 h-8 text-primary" />
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                <Network className="w-8 h-8 text-primary" />
               </div>
-              <h2 className="text-xl font-bold mb-2">
-                <BlurText
-                  text="What can I help you with?"
-                  delay={80}
-                  animateBy="words"
-                  direction="top"
-                  className="justify-center"
-                />
+              <h2 className="text-xl font-semibold mb-2">
+                What can I help you with?
               </h2>
-              <div className="text-sm text-muted-foreground max-w-md mx-auto mb-8">
-                <BlurText
-                  text="I can access your Gmail, Google Calendar, GitHub repos, Slack channels, and Discord servers. Every action is scoped and audited."
-                  delay={40}
-                  animateBy="words"
-                  direction="top"
-                  className="justify-center"
-                />
-              </div>
+              <p className="text-sm text-muted-foreground max-w-md mx-auto mb-8">
+                I can access your Gmail, Google Calendar, GitHub repos, Slack
+                channels, and Discord servers. Every action is scoped and
+                audited.
+              </p>
 
               {/* Suggested prompts */}
               <AnimatePresence>
@@ -494,15 +483,7 @@ export function ChatInterface() {
                         }}
                         className="text-left text-xs p-3 rounded-lg border border-border/50 hover:bg-accent/50 transition-colors text-muted-foreground hover:text-foreground"
                       >
-                        <BlurText
-                          text={prompt}
-                          delay={30}
-                          animateBy="words"
-                          direction="top"
-                          animationFrom={{ filter: "blur(6px)", opacity: 0, y: -10 }}
-                          animationTo={[{ filter: "blur(0px)", opacity: 1, y: 0 }]}
-                          stepDuration={0.3 + i * 0.15}
-                        />
+                        {prompt}
                       </button>
                     ))}
                   </motion.div>
@@ -530,7 +511,7 @@ export function ChatInterface() {
                 {message.role === "user" ? (
                   <User className="w-4 h-4" />
                 ) : (
-                  <Sparkles className="w-4 h-4 text-primary" />
+                  <Network className="w-4 h-4 text-primary" />
                 )}
               </div>
 
@@ -791,7 +772,7 @@ export function ChatInterface() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Ask Nexus anything... (e.g., 'Check my unread emails')"
-              className="min-h-[44px] max-h-[120px] resize-none pr-12 text-sm"
+              className="min-h-11 max-h-30 resize-none pr-12 text-sm"
               rows={1}
             />
           </div>
@@ -799,17 +780,12 @@ export function ChatInterface() {
             type="submit"
             size="icon"
             disabled={isLoading || !input.trim()}
-            className="shrink-0 h-[44px] w-[44px]"
+            className="shrink-0 h-11 w-11"
           >
             {isLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9, rotate: -15 }}
-              >
-                <Send className="w-4 h-4" />
-              </motion.div>
+              <Send className="w-4 h-4" />
             )}
           </Button>
         </form>

@@ -8,21 +8,19 @@ import {
   Shield,
   Activity,
   ArrowRight,
-  Sparkles,
   Mail,
   KeyRound,
   Zap,
   CheckCircle,
   ShieldAlert,
-  Clock,
   Lock,
+  Network,
 } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import DecryptedText from "@/components/ui/decrypted-text";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { fadeUp, stagger } from "@/components/dashboard/motion";
 import type { AuditEntry } from "@/lib/types";
@@ -34,34 +32,21 @@ interface QuickActionProps {
   href: string;
   color: string;
   bgColor: string;
-  gradient: string;
 }
 
-function QuickAction({ icon: Icon, title, description, color, bgColor, gradient, href }: QuickActionProps) {
+function QuickAction({ icon: Icon, title, description, color, bgColor, href }: QuickActionProps) {
   return (
     <Link href={href}>
-      <Card className="relative overflow-hidden transition-all duration-300 cursor-pointer group h-full hover:shadow-md hover:border-primary/30">
-        <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-        <CardContent className="pt-5 pb-5 relative z-10">
-          <div className="flex items-center gap-4">
-            <motion.div 
-              className={`w-12 h-12 rounded-xl ${bgColor} flex items-center justify-center`}
-              whileHover={{ scale: 1.1, rotate: 5 }}
-              transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            >
-              <Icon className={`w-6 h-6 ${color}`} />
-            </motion.div>
-            <div className="flex-1">
-              <h3 className="font-semibold text-sm group-hover:text-primary transition-colors">{title}</h3>
-              <p className="text-xs text-muted-foreground">{description}</p>
-            </div>
-            <motion.div
-              animate={{ x: [0, 4, 0] }}
-              transition={{ duration: 0.3, repeat: Infinity, repeatDelay: 3 }}
-            >
-              <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-            </motion.div>
+      <Card className="transition-colors cursor-pointer group h-full hover:bg-accent/30">
+        <CardContent className="flex items-center gap-4">
+          <div className={`w-11 h-11 rounded-lg ${bgColor} flex items-center justify-center shrink-0`}>
+            <Icon className={`w-5 h-5 ${color}`} />
           </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-medium text-sm">{title}</h3>
+            <p className="text-xs text-muted-foreground">{description}</p>
+          </div>
+          <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-0.5 transition-transform shrink-0" />
         </CardContent>
       </Card>
     </Link>
@@ -116,29 +101,17 @@ export function DashboardOverview({
       <motion.div variants={fadeUp} className="mb-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="relative">
-              <Avatar className="w-14 h-14 ring-4 ring-primary/10">
-                <AvatarImage src={userAvatar} />
-                <AvatarFallback className="bg-primary text-primary-foreground text-lg">
-                  {userName.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-background" />
-            </div>
+            <Avatar className="w-14 h-14 ring-2 ring-border">
+              <AvatarImage src={userAvatar} />
+              <AvatarFallback className="bg-primary text-primary-foreground text-lg">
+                {userName.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold">
-                <DecryptedText
-                  text={`Welcome back, ${userName.split(" ")[0]}`}
-                  animateOn="view"
-                  speed={30}
-                  sequential
-                  revealDirection="start"
-                  className="text-foreground"
-                  encryptedClassName="text-muted-foreground/40"
-                />
+              <h1 className="text-2xl font-semibold tracking-tight">
+                Welcome back, {userName.split(" ")[0]}
               </h1>
-              <p className="text-muted-foreground text-sm flex items-center gap-2">
-                <Clock className="w-3 h-3" />
+              <p className="text-muted-foreground text-sm">
                 Your AI agent is ready to help
               </p>
             </div>
@@ -189,10 +162,7 @@ export function DashboardOverview({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* Quick Actions - 2 columns on large screens */}
         <motion.div variants={fadeUp} className="lg:col-span-2 space-y-4">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-primary" />
-            Quick Actions
-          </h2>
+          <h2 className="text-lg font-semibold">Quick Actions</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <QuickAction
               icon={MessageSquare}
@@ -201,7 +171,6 @@ export function DashboardOverview({
               href="/dashboard/chat"
               color="text-primary"
               bgColor="bg-primary/10"
-              gradient="from-primary/20 via-primary/5 to-transparent"
             />
             <QuickAction
               icon={Link2}
@@ -210,7 +179,6 @@ export function DashboardOverview({
               href="/dashboard/connections"
               color="text-blue-400"
               bgColor="bg-blue-400/10"
-              gradient="from-blue-400/20 via-blue-400/5 to-transparent"
             />
             <QuickAction
               icon={Shield}
@@ -219,7 +187,6 @@ export function DashboardOverview({
               href="/dashboard/permissions"
               color="text-green-400"
               bgColor="bg-green-400/10"
-              gradient="from-green-400/20 via-green-400/5 to-transparent"
             />
             <QuickAction
               icon={Activity}
@@ -228,7 +195,6 @@ export function DashboardOverview({
               href="/dashboard/audit"
               color="text-orange-400"
               bgColor="bg-orange-400/10"
-              gradient="from-orange-400/20 via-orange-400/5 to-transparent"
             />
           </div>
         </motion.div>
@@ -255,8 +221,8 @@ export function DashboardOverview({
                 </div>
                 <ArrowRight className="w-4 h-4 text-muted-foreground -mt-4" />
                 <div className="flex flex-col items-center gap-1">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center glow">
-                    <Sparkles className="w-5 h-5 text-primary" />
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Network className="w-5 h-5 text-primary" />
                   </div>
                   <span className="text-[10px] text-muted-foreground">Nexus</span>
                 </div>

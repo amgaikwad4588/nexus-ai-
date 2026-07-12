@@ -231,11 +231,11 @@ export default function TestDPoPPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Prevents token theft attacks (attacker needs private key)</li>
-                <li>• Sender-constrained tokens (binds token to specific client)</li>
-                <li>• Fresh key proof for each request (replay protection via jti)</li>
-                <li>• Automatic rotation reduces key compromise window</li>
+              <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                <li>Prevents token theft attacks (attacker needs private key)</li>
+                <li>Sender-constrained tokens (binds token to specific client)</li>
+                <li>Fresh key proof for each request (replay protection via jti)</li>
+                <li>Automatic rotation reduces key compromise window</li>
               </ul>
             </CardContent>
           </Card>

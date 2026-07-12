@@ -16,9 +16,7 @@ import {
   Network,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import BlurText from "@/components/ui/blur-text";
 import DecryptedText from "@/components/ui/decrypted-text";
-import TextType from "@/components/ui/text-type";
 import DotGrid from "@/components/ui/dot-grid";
 
 const fadeUp = {
@@ -87,15 +85,12 @@ export function LandingPage() {
             </span>
           </motion.div>
 
-          <motion.div variants={fadeUp}>
-            <BlurText
-              text="Your AI Agent, Securely Connected to Your Digital Life"
-              delay={100}
-              animateBy="words"
-              direction="top"
-              className="text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-[1.1] justify-center"
-            />
-          </motion.div>
+          <motion.h1
+            variants={fadeUp}
+            className="text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-[1.1]"
+          >
+            Your AI Agent, Securely Connected to Your Digital Life
+          </motion.h1>
 
           <motion.p
             variants={fadeUp}
@@ -269,15 +264,12 @@ export function LandingPage() {
                 </div>
               </div>
             </div>
-            {/* Floating badges */}
-            <div className="absolute -top-4 -right-4 glass rounded-lg px-3 py-2 animate-float text-xs font-medium flex items-center gap-1.5">
+            {/* Corner badges */}
+            <div className="absolute -top-4 -right-4 glass rounded-lg px-3 py-2 text-xs font-medium flex items-center gap-1.5">
               <Shield className="w-3.5 h-3.5 text-green-400" />
               Scoped Access
             </div>
-            <div
-              className="absolute -bottom-4 -left-4 glass rounded-lg px-3 py-2 animate-float text-xs font-medium flex items-center gap-1.5"
-              style={{ animationDelay: "1s" }}
-            >
+            <div className="absolute -bottom-4 -left-4 glass rounded-lg px-3 py-2 text-xs font-medium flex items-center gap-1.5">
               <Activity className="w-3.5 h-3.5 text-primary" />
               Full Audit Trail
             </div>
@@ -301,13 +293,8 @@ export function LandingPage() {
         </div>
         <div className="max-w-6xl mx-auto">
           <motion.div variants={fadeUp} className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 flex justify-center">
-              <BlurText
-                text="Identity-First Agent Architecture"
-                animateBy="words"
-                direction="top"
-                className="text-foreground inline-block"
-              />
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Identity-First Agent Architecture
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
               Every API call is authenticated, scoped, and audited. Your agent
@@ -363,16 +350,14 @@ export function LandingPage() {
               <motion.div
                 key={i}
                 variants={fadeUp}
-                className="glass rounded-xl p-6 hover:bg-accent/50 transition-colors group cursor-pointer glow-card"
-                whileHover={{ y: -5, scale: 1.02 }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                className="glass rounded-xl p-6 hover:bg-accent/30 transition-colors"
               >
-                <div className="mb-4 w-12 h-12 rounded-xl bg-accent/30 flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
+                <div className="mb-4 w-12 h-12 rounded-xl bg-accent/30 flex items-center justify-center">
                   <feature.icon
                     className={`w-6 h-6 ${feature.color}`}
                   />
                 </div>
-                <h3 className="text-lg font-semibold mb-2 group-hover:text-primary transition-colors">{feature.title}</h3>
+                <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
                 <p className="text-muted-foreground text-sm leading-relaxed">
                   {feature.description}
                 </p>
@@ -392,13 +377,8 @@ export function LandingPage() {
       >
         <div className="max-w-5xl mx-auto">
           <motion.div variants={fadeUp} className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 flex justify-center">
-              <BlurText
-                text="How Nexus Keeps You in Control"
-                animateBy="words"
-                direction="top"
-                className="text-foreground inline-block"
-              />
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              How Nexus Keeps You in Control
             </h2>
           </motion.div>
 
@@ -426,65 +406,24 @@ export function LandingPage() {
                 icons: [Eye, Shield, Activity],
               },
             ].map((item, i) => (
-              <motion.div 
-                key={i} 
-                variants={fadeUp} 
-                className="text-center group cursor-pointer"
-                whileHover={{ y: -8, scale: 1.02 }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              >
-                <motion.div 
-                  className="inline-flex items-center justify-center w-14 h-14 rounded-full glass text-primary font-bold text-lg mb-6 relative"
-                  whileHover={{ scale: 1.15, rotate: 10 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <motion.span
-                    animate={{ opacity: [0.5, 1, 0.5] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
-                    {item.step}
-                  </motion.span>
-                  <div className="absolute -inset-1 rounded-full bg-primary/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
-                </motion.div>
-                <h3 className="text-xl font-semibold mb-3 group-hover:text-primary transition-colors">
-                  <BlurText
-                    text={item.title}
-                    animateBy="words"
-                    direction="top"
-                    className="inline-block"
-                  />
-                </h3>
-                <motion.p 
-                  className="text-muted-foreground text-sm leading-relaxed mb-4"
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                  viewport={{ once: true }}
-                >
+              <motion.div key={i} variants={fadeUp} className="text-center">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-full glass text-primary font-bold text-lg mb-6">
+                  {item.step}
+                </div>
+                <h3 className="text-xl font-semibold mb-3">{item.title}</h3>
+                <p className="text-muted-foreground text-sm leading-relaxed mb-4">
                   {item.description}
-                </motion.p>
+                </p>
                 <div className="flex items-center justify-center gap-3">
                   {item.icons.map((Icon, j) => (
-                    <motion.div
+                    <div
                       key={j}
                       className="w-10 h-10 rounded-lg glass flex items-center justify-center"
-                      initial={{ opacity: 0, y: 10 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 + j * 0.1 }}
-                      viewport={{ once: true }}
-                      whileHover={{ y: -4, scale: 1.15, rotate: 5 }}
                     >
-                      <Icon className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                    </motion.div>
+                      <Icon className="w-5 h-5 text-muted-foreground" />
+                    </div>
                   ))}
                 </div>
-                <motion.div
-                  className="mt-4 h-0.5 bg-gradient-to-r from-transparent via-primary/50 to-transparent"
-                  initial={{ scaleX: 0 }}
-                  whileInView={{ scaleX: 1 }}
-                  transition={{ delay: 0.5, duration: 0.5 }}
-                  viewport={{ once: true }}
-                />
               </motion.div>
             ))}
           </div>

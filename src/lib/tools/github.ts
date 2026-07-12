@@ -346,7 +346,7 @@ export const deleteGitHubRepo = withGitHubAccess(
         description: `DELETE repository ${repo}`,
         riskLevel: "high",
         details: { repo, confirmName },
-        message: "⚠️ DESTRUCTIVE ACTION: This will permanently delete the repository. Re-authentication is required before execution.",
+        message: "DESTRUCTIVE ACTION: This will permanently delete the repository. Re-authentication is required before execution.",
       };
     },
   })
