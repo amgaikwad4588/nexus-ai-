@@ -11,7 +11,6 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  AlertTriangle,
   RefreshCw,
   Loader2,
   Filter,
@@ -28,7 +27,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import DecryptedText from "@/components/ui/decrypted-text";
+import { PageHeader } from "@/components/dashboard/page-header";
+import { StatCard } from "@/components/dashboard/stat-card";
+import { fadeUp, stagger } from "@/components/dashboard/motion";
 import type { AuditEntry } from "@/lib/types";
 
 const serviceIcons: Record<string, { icon: typeof Mail; color: string }> = {
@@ -51,11 +52,6 @@ const riskColors = {
   medium: "text-yellow-400 bg-yellow-400/10 border-yellow-400/30",
   high: "text-orange-400 bg-orange-400/10 border-orange-400/30",
   critical: "text-red-400 bg-red-400/10 border-red-400/30",
-};
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
 };
 
 interface AuditStats {
@@ -98,30 +94,16 @@ export function AuditPage() {
       <motion.div
         initial="hidden"
         animate="visible"
-        variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
+        variants={stagger}
         className="space-y-6"
       >
         {/* Header */}
-        <motion.div variants={fadeUp}>
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold flex items-center gap-2">
-                <Activity className="w-6 h-6 text-primary" />
-                <DecryptedText
-                  text="Audit Trail"
-                  animateOn="view"
-                  speed={35}
-                  sequential
-                  revealDirection="start"
-                  className="text-foreground"
-                  encryptedClassName="text-muted-foreground/40"
-                />
-              </h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                Every agent action logged with full transparency
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
+        <PageHeader
+          icon={Activity}
+          title="Audit Trail"
+          description="Every agent action logged with full transparency"
+          actions={
+            <>
               <Button
                 variant={showRawJson ? "secondary" : "outline"}
                 size="sm"
@@ -145,60 +127,47 @@ export function AuditPage() {
                   <RefreshCw className="w-4 h-4" />
                 )}
               </Button>
-            </div>
-          </div>
-        </motion.div>
+            </>
+          }
+        />
 
         {/* Stats */}
         {stats && (
           <motion.div variants={fadeUp}>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-              <Card>
-                <CardContent className="pt-4 pb-4">
-                  <p className="text-xs text-muted-foreground">Total Actions</p>
-                  <p className="text-xl font-bold">{stats.total}</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-4 pb-4">
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <CheckCircle className="w-3 h-3 text-green-400" /> Success
-                  </p>
-                  <p className="text-xl font-bold text-green-400">
-                    {stats.byStatus.success || 0}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-4 pb-4">
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <XCircle className="w-3 h-3 text-red-400" /> Failed
-                  </p>
-                  <p className="text-xl font-bold text-red-400">
-                    {stats.byStatus.failed || 0}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-4 pb-4">
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Shield className="w-3 h-3 text-yellow-400" /> Step-Up Auth
-                  </p>
-                  <p className="text-xl font-bold text-yellow-400">
-                    {stats.stepUpCount}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-4 pb-4">
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <BarChart3 className="w-3 h-3 text-primary" /> Services
-                  </p>
-                  <p className="text-xl font-bold">
-                    {Object.values(stats.byService).filter((v) => v > 0).length}
-                  </p>
-                </CardContent>
-              </Card>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+              <StatCard
+                icon={Activity}
+                label="Total Actions"
+                value={stats.total}
+              />
+              <StatCard
+                icon={CheckCircle}
+                label="Success"
+                value={stats.byStatus.success || 0}
+                color="text-green-400"
+                bgColor="bg-green-400/10"
+              />
+              <StatCard
+                icon={XCircle}
+                label="Failed"
+                value={stats.byStatus.failed || 0}
+                color="text-red-400"
+                bgColor="bg-red-400/10"
+              />
+              <StatCard
+                icon={Shield}
+                label="Step-Up Auth"
+                value={stats.stepUpCount}
+                color="text-yellow-400"
+                bgColor="bg-yellow-400/10"
+              />
+              <StatCard
+                icon={BarChart3}
+                label="Services"
+                value={Object.values(stats.byService).filter((v) => v > 0).length}
+                color="text-blue-400"
+                bgColor="bg-blue-400/10"
+              />
             </div>
           </motion.div>
         )}

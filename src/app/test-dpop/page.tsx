@@ -2,6 +2,25 @@
 
 import { useEffect, useState } from "react";
 import {
+  KeyRound,
+  RefreshCw,
+  RotateCw,
+  Trash2,
+  CheckCircle,
+  XCircle,
+  Loader2,
+  Shield,
+  Info,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
   getOrCreateDPoPKeyPair,
   createDPoPProof,
   isKeyExpired,
@@ -40,7 +59,7 @@ export default function TestDPoPPage() {
       }));
 
       const proof = await createDPoPProof("POST", "https://example.com/oauth/token", "test-access-token");
-      
+
       const parts = proof.proof.split(".");
       setResults((prev) => ({
         ...prev,
@@ -91,77 +110,109 @@ export default function TestDPoPPage() {
 
   useEffect(() => {
     runTest();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#050508] text-white p-8">
-      <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6 text-center">DPoP Implementation Test</h1>
+    <div className="min-h-screen p-6 md:p-8 max-w-5xl mx-auto space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold flex items-center gap-2">
+          <KeyRound className="w-6 h-6 text-primary" />
+          DPoP Implementation Test
+        </h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Verify key generation, proof signing, and rotation for sender-constrained tokens
+        </p>
+      </div>
 
-        <div className="mb-6 flex gap-4 flex-wrap">
-          <button
-            onClick={runTest}
-            className="px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-medium transition-colors"
-          >
-            Re-run Full Test
-          </button>
-          <button
-            onClick={testRotation}
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors"
-          >
-            Test Key Rotation
-          </button>
-          <button
-            onClick={testClear}
-            className="px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-medium transition-colors"
-          >
-            Clear Keys & Regenerate
-          </button>
+      {/* Controls */}
+      <div className="flex gap-2 flex-wrap">
+        <Button size="sm" onClick={runTest} disabled={status === "testing"}>
+          {status === "testing" ? (
+            <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+          ) : (
+            <RefreshCw className="w-4 h-4 mr-1" />
+          )}
+          Re-run Full Test
+        </Button>
+        <Button size="sm" variant="outline" onClick={testRotation} disabled={status === "testing"}>
+          <RotateCw className="w-4 h-4 mr-1" />
+          Test Key Rotation
+        </Button>
+        <Button size="sm" variant="destructive" onClick={testClear} disabled={status === "testing"}>
+          <Trash2 className="w-4 h-4 mr-1" />
+          Clear Keys &amp; Regenerate
+        </Button>
+      </div>
+
+      {/* Rotation period */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <label className="text-sm text-muted-foreground" htmlFor="rotation-period">
+          Rotation Period (ms):
+        </label>
+        <Input
+          id="rotation-period"
+          type="number"
+          value={rotationPeriod}
+          onChange={(e) => setRotationPeriodState(Number(e.target.value))}
+          className="w-48"
+        />
+        <span className="text-sm text-muted-foreground">
+          ({Math.round(rotationPeriod / 1000 / 60)} minutes)
+        </span>
+      </div>
+
+      {status === "testing" && (
+        <div className="flex items-center justify-center gap-2 py-12 text-sm text-muted-foreground">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          Running DPoP test...
         </div>
+      )}
 
-        <div className="mb-6">
-          <label className="block text-gray-400 mb-2">Rotation Period (ms):</label>
-          <input
-            type="number"
-            value={rotationPeriod}
-            onChange={(e) => setRotationPeriodState(Number(e.target.value))}
-            className="bg-[#1a1a2e] border border-gray-700 rounded px-4 py-2 w-64"
-          />
-          <span className="ml-2 text-gray-500">
-            ({Math.round(rotationPeriod / 1000 / 60)} minutes)
-          </span>
-        </div>
+      {status === "success" && (
+        <div className="space-y-6">
+          <Card className="bg-green-500/5 border-green-500/20">
+            <CardContent className="flex items-center gap-2 text-sm font-medium text-green-400">
+              <CheckCircle className="w-4 h-4 shrink-0" />
+              DPoP Implementation Working
+            </CardContent>
+          </Card>
 
-        {status === "testing" && (
-          <div className="text-center py-12 text-gray-400">Running DPoP test...</div>
-        )}
-
-        {status === "success" && (
-          <div className="space-y-4">
-            <div className="bg-green-900/30 border border-green-700 rounded-lg p-4 mb-6">
-              <div className="flex items-center gap-2 text-green-400 font-medium">
-                <span>✓</span> DPoP Implementation Working
-              </div>
-            </div>
-
-            <div className="bg-[#0a0a0f] rounded-lg p-6 space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <KeyRound className="w-4 h-4 text-primary" />
+                Test Results
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
               {Object.entries(results).map(([key, value]) => (
                 <div key={key} className="flex flex-col gap-1">
-                  <span className="text-gray-400 text-sm font-medium">{key}</span>
+                  <span className="text-xs font-medium text-muted-foreground">{key}</span>
                   {value.includes("{") ? (
-                    <pre className="bg-[#1a1a2e] p-3 rounded text-xs overflow-x-auto">
+                    <pre className="bg-accent/20 border border-border/30 p-3 rounded-lg text-xs font-mono overflow-x-auto">
                       {value}
                     </pre>
                   ) : (
-                    <code className="bg-[#1a1a2e] p-2 rounded text-sm break-all">{value}</code>
+                    <code className="bg-accent/20 border border-border/30 p-2 rounded-lg text-xs font-mono break-all">
+                      {value}
+                    </code>
                   )}
                 </div>
               ))}
-            </div>
+            </CardContent>
+          </Card>
 
-            <div className="mt-6 p-4 bg-blue-900/20 border border-blue-700 rounded-lg">
-              <h3 className="text-blue-400 font-medium mb-2">How DPoP Works:</h3>
-              <ul className="text-gray-300 text-sm space-y-1">
+          <Card className="bg-primary/5 border-primary/20">
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Info className="w-4 h-4 text-primary" />
+                How DPoP Works
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="text-sm text-muted-foreground space-y-1">
                 <li>1. Generate EC P-256 key pair using Web Crypto API</li>
                 <li>2. Create DPoP proof JWT with htm (method), htu (URL), jti, iat claims</li>
                 <li>3. Bind access token hash (ath) for sender-constraining</li>
@@ -169,27 +220,39 @@ export default function TestDPoPPage() {
                 <li>5. Include proof in requests via DPoP-Signature header</li>
                 <li>6. Keys auto-rotate every 24 hours (configurable)</li>
               </ul>
-            </div>
+            </CardContent>
+          </Card>
 
-            <div className="mt-4 p-4 bg-yellow-900/20 border border-yellow-700 rounded-lg">
-              <h3 className="text-yellow-400 font-medium mb-2">Security Benefits:</h3>
-              <ul className="text-gray-300 text-sm space-y-1">
+          <Card className="bg-yellow-500/5 border-yellow-500/20">
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2 text-yellow-400">
+                <Shield className="w-4 h-4" />
+                Security Benefits
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="text-sm text-muted-foreground space-y-1">
                 <li>• Prevents token theft attacks (attacker needs private key)</li>
                 <li>• Sender-constrained tokens (binds token to specific client)</li>
-                <li>• Fresh key proof for each request (Replay protection via jti)</li>
+                <li>• Fresh key proof for each request (replay protection via jti)</li>
                 <li>• Automatic rotation reduces key compromise window</li>
               </ul>
-            </div>
-          </div>
-        )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
-        {status === "error" && (
-          <div className="bg-red-900/30 border border-red-700 rounded-lg p-4">
-            <div className="text-red-400 font-medium">Test Failed</div>
-            <code className="text-red-300 text-sm">{error}</code>
-          </div>
-        )}
-      </div>
+      {status === "error" && (
+        <Card className="bg-destructive/5 border-destructive/30">
+          <CardContent className="space-y-1">
+            <div className="flex items-center gap-2 text-sm font-medium text-destructive">
+              <XCircle className="w-4 h-4 shrink-0" />
+              Test Failed
+            </div>
+            <code className="text-xs font-mono text-destructive/80 break-all">{error}</code>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

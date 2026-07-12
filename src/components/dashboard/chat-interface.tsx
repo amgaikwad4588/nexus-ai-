@@ -26,7 +26,6 @@ import {
   Server,
   ChevronRight,
   ExternalLink,
-  Folder,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -396,7 +395,7 @@ export function ChatInterface() {
     } catch {
       // Denial is best-effort on server
     }
-  }, []);
+  }, [addToast]);
 
   const sendQuickMessage = useCallback((text: string) => {
     sendMessage({ text });
@@ -436,7 +435,7 @@ export function ChatInterface() {
         <div>
           <h1 className="font-semibold text-sm">Nexus AI Agent</h1>
           <p className="text-xs text-muted-foreground">
-            Connected to Google, GitHub, Slack via Token Vault
+            Connected to Google, GitHub, Slack &amp; Discord via Token Vault
           </p>
         </div>
         <Badge variant="outline" className="ml-auto text-xs">
@@ -469,7 +468,7 @@ export function ChatInterface() {
               </h2>
               <div className="text-sm text-muted-foreground max-w-md mx-auto mb-8">
                 <BlurText
-                  text="I can access your Gmail, Google Calendar, GitHub repos, and Slack channels. Every action is scoped and audited."
+                  text="I can access your Gmail, Google Calendar, GitHub repos, Slack channels, and Discord servers. Every action is scoped and audited."
                   delay={40}
                   animateBy="words"
                   direction="top"

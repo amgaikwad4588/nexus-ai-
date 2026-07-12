@@ -10,7 +10,6 @@ import {
   CheckCircle,
   XCircle,
   Mail,
-  Calendar,
   GitBranch,
   MessageSquare,
   ArrowRight,
@@ -18,8 +17,6 @@ import {
   Loader2,
   Pencil,
   Clock,
-  Bot,
-  Info,
   ShieldCheck,
   ShieldAlert,
 } from "lucide-react";
@@ -31,13 +28,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import DecryptedText from "@/components/ui/decrypted-text";
 import { CreativeToggle } from "@/components/ui/creative-toggle";
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
-};
+import { PageHeader } from "@/components/dashboard/page-header";
+import { StatCard } from "@/components/dashboard/stat-card";
+import { fadeUp, stagger } from "@/components/dashboard/motion";
 
 interface ScopeInfo {
   scope: string;
@@ -286,74 +280,49 @@ export function PermissionsPage() {
   );
 
   return (
-    <div className="p-6 md:p-8 max-w-4xl mx-auto">
+    <div className="p-6 md:p-8 max-w-5xl mx-auto">
       <motion.div
         initial="hidden"
         animate="visible"
-        variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
+        variants={stagger}
         className="space-y-6"
       >
         {/* Header */}
-        <motion.div variants={fadeUp}>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Shield className="w-6 h-6 text-primary" />
-            <DecryptedText
-              text="Permission Dashboard"
-              animateOn="view"
-              speed={35}
-              sequential
-              revealDirection="start"
-              className="text-foreground"
-              encryptedClassName="text-muted-foreground/40"
-            />
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Control exactly what your AI agent can access. Uncheck a scope to
-            block the AI from using it — even if the service is connected.
-          </p>
-        </motion.div>
+        <PageHeader
+          icon={Shield}
+          title="Permission Dashboard"
+          description="Control exactly what your AI agent can access. Uncheck a scope to block the AI from using it — even if the service is connected."
+        />
 
         {/* Stats */}
         <motion.div variants={fadeUp}>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              {
-                label: "Total Scopes",
-                value: totalScopes,
-                icon: KeyRound,
-                color: "text-primary",
-              },
-              {
-                label: "Read-Only",
-                value: readScopes,
-                icon: Eye,
-                color: "text-green-400",
-              },
-              {
-                label: "Write Access",
-                value: writeScopes,
-                icon: Lock,
-                color: "text-yellow-400",
-              },
-              {
-                label: "Enabled",
-                value: `${enabledCount}/${totalScopes}`,
-                icon: CheckCircle,
-                color: "text-emerald-400",
-              },
-            ].map((stat) => (
-              <Card key={stat.label}>
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-2 mb-1">
-                    <stat.icon className={`w-4 h-4 ${stat.color}`} />
-                    <span className="text-xs text-muted-foreground">
-                      {stat.label}
-                    </span>
-                  </div>
-                  <p className="text-2xl font-bold">{stat.value}</p>
-                </CardContent>
-              </Card>
-            ))}
+            <StatCard
+              icon={KeyRound}
+              label="Total Scopes"
+              value={totalScopes}
+            />
+            <StatCard
+              icon={Eye}
+              label="Read-Only"
+              value={readScopes}
+              color="text-green-400"
+              bgColor="bg-green-400/10"
+            />
+            <StatCard
+              icon={Lock}
+              label="Write Access"
+              value={writeScopes}
+              color="text-yellow-400"
+              bgColor="bg-yellow-400/10"
+            />
+            <StatCard
+              icon={CheckCircle}
+              label="Enabled"
+              value={`${enabledCount}/${totalScopes}`}
+              color="text-emerald-400"
+              bgColor="bg-emerald-400/10"
+            />
           </div>
         </motion.div>
 
@@ -440,18 +409,18 @@ export function PermissionsPage() {
             const enabledScopeCount = service.scopes.filter((s) => isEnabled(s.scope)).length;
             return (
               <motion.div key={service.id} variants={fadeUp}>
-                <Card className={!serviceEnabled ? "border-zinc-800" : ""}>
+                <Card className={!serviceEnabled ? "opacity-90" : ""}>
                   {/* ── Master toggle row ── */}
                   <CardHeader className="pb-0">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div
-                          className={`w-10 h-10 rounded-lg ${serviceEnabled ? service.bgColor : "bg-zinc-800/50"} flex items-center justify-center transition-colors`}
+                          className={`w-10 h-10 rounded-lg ${serviceEnabled ? service.bgColor : "bg-muted/50"} flex items-center justify-center transition-colors`}
                         >
-                          <Icon className={`w-5 h-5 ${serviceEnabled ? service.color : "text-zinc-500"}`} />
+                          <Icon className={`w-5 h-5 ${serviceEnabled ? service.color : "text-muted-foreground"}`} />
                         </div>
                         <div>
-                          <CardTitle className={`text-base ${!serviceEnabled ? "text-zinc-500" : ""}`}>
+                          <CardTitle className={`text-base ${!serviceEnabled ? "text-muted-foreground" : ""}`}>
                             {service.name}
                           </CardTitle>
                           <div className="flex items-center gap-3 mt-0.5">
@@ -460,7 +429,7 @@ export function PermissionsPage() {
                                 ? `${enabledScopeCount}/${service.scopes.length} scopes enabled`
                                 : "All access blocked"}
                             </CardDescription>
-                            <span className="text-zinc-700">|</span>
+                            <span className="text-border">|</span>
                             <div className="flex items-center gap-1">
                               <Clock className="w-3 h-3 text-muted-foreground" />
                               <span className="text-[11px] text-muted-foreground">
@@ -475,7 +444,7 @@ export function PermissionsPage() {
                                     {service.lastAccessed}
                                   </span>
                                 ) : (
-                                  <span className="text-zinc-500">Never</span>
+                                  <span className="text-muted-foreground">Never</span>
                                 )}
                               </span>
                             </div>
@@ -484,7 +453,7 @@ export function PermissionsPage() {
                       </div>
                       <div className="flex items-center gap-3">
                         {!serviceEnabled && (
-                          <Badge variant="outline" className="text-xs text-zinc-400 border-zinc-600/30 bg-zinc-800/30">
+                          <Badge variant="outline" className="text-xs text-muted-foreground border-border bg-muted/30">
                             Disabled
                           </Badge>
                         )}
@@ -536,10 +505,10 @@ export function PermissionsPage() {
                             <div
                               className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border transition-all duration-200 gap-3 ${
                                 !serviceEnabled
-                                  ? "bg-zinc-900/30 border-zinc-800/30 opacity-40"
+                                  ? "bg-muted/20 border-border/30 opacity-40"
                                   : enabled
                                     ? "bg-accent/20 border-border/30"
-                                    : "bg-red-950/20 border-red-500/20"
+                                    : "bg-red-500/5 border-red-500/20"
                               }`}
                             >
                               <div className="flex items-start gap-3 flex-1">
@@ -561,7 +530,7 @@ export function PermissionsPage() {
                                           ? scope.readWrite === "write"
                                             ? "bg-yellow-500 shadow-lg shadow-yellow-500/50"
                                             : "bg-emerald-500 shadow-lg shadow-emerald-500/50"
-                                          : "bg-zinc-700/60 hover:bg-zinc-600"
+                                          : "bg-muted-foreground/30 hover:bg-muted-foreground/40"
                                       }`}
                                     >
                                       <div
@@ -572,7 +541,7 @@ export function PermissionsPage() {
                                         {enabled ? (
                                           <ShieldCheck className={`w-3.5 h-3.5 ${scope.readWrite === "write" ? "text-yellow-600" : "text-emerald-600"}`} />
                                         ) : (
-                                          <XCircle className="w-3.5 h-3.5 text-zinc-400" />
+                                          <XCircle className="w-3.5 h-3.5 text-muted-foreground" />
                                         )}
                                       </div>
                                     </div>

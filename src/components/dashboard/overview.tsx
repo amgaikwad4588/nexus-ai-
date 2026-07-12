@@ -14,7 +14,6 @@ import {
   Zap,
   CheckCircle,
   ShieldAlert,
-  TrendingUp,
   Clock,
   Lock,
 } from "lucide-react";
@@ -24,62 +23,9 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import DecryptedText from "@/components/ui/decrypted-text";
+import { StatCard } from "@/components/dashboard/stat-card";
+import { fadeUp, stagger } from "@/components/dashboard/motion";
 import type { AuditEntry } from "@/lib/types";
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
-};
-
-const stagger = {
-  visible: { transition: { staggerChildren: 0.08 } },
-};
-
-const fadeInScale = {
-  hidden: { opacity: 0, scale: 0.95 },
-  visible: { opacity: 1, scale: 1, transition: { duration: 0.3 } },
-};
-
-interface StatCardProps {
-  icon: React.ElementType;
-  label: string;
-  value: string | number;
-  trend?: string;
-  color: string;
-  bgColor: string;
-}
-
-function StatCard({ icon: Icon, label, value, trend, color, bgColor }: StatCardProps) {
-  return (
-    <motion.div variants={fadeInScale}>
-      <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
-        <div className={`absolute inset-0 bg-gradient-to-br ${bgColor} opacity-50 group-hover:opacity-70 transition-opacity`} />
-        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-primary/5 to-transparent rounded-bl-full" />
-        <CardContent className="relative z-10 p-5">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{label}</p>
-              <p className="text-2xl font-bold mt-1 tracking-tight">{value}</p>
-              {trend && (
-                <p className="text-xs text-green-500 flex items-center gap-1 mt-1">
-                  <TrendingUp className="w-3 h-3" />
-                  {trend}
-                </p>
-              )}
-            </div>
-            <motion.div 
-              className={`w-10 h-10 rounded-xl ${bgColor} flex items-center justify-center`}
-              whileHover={{ scale: 1.15, rotate: -10 }}
-              transition={{ type: "spring", stiffness: 400, damping: 15 }}
-            >
-              <Icon className={`w-5 h-5 ${color}`} />
-            </motion.div>
-          </div>
-        </CardContent>
-      </Card>
-    </motion.div>
-  );
-}
 
 interface QuickActionProps {
   icon: React.ElementType;
@@ -135,6 +81,7 @@ export function DashboardOverview({
     stepUpCount: number;
   } | null>(null);
   const [recentEntries, setRecentEntries] = useState<AuditEntry[]>([]);
+  const [connectionsCount, setConnectionsCount] = useState<number | null>(null);
 
   useEffect(() => {
     fetch("/api/audit")
@@ -144,7 +91,19 @@ export function DashboardOverview({
         setRecentEntries((data.entries || []).slice(0, 5));
       })
       .catch(() => {});
+    fetch("/api/connections")
+      .then((res) => res.json())
+      .then((data) => {
+        const services = (data.services || []) as { connected?: boolean }[];
+        setConnectionsCount(services.filter((s) => s.connected).length);
+      })
+      .catch(() => {});
   }, []);
+
+  const successRate =
+    auditStats && auditStats.total > 0
+      ? Math.round(((auditStats.byStatus?.success || 0) / auditStats.total) * 100)
+      : null;
 
   return (
     <motion.div
@@ -201,31 +160,28 @@ export function DashboardOverview({
           icon={Activity}
           label="Total Actions"
           value={auditStats?.total || 0}
-          trend="+12% this week"
-          color="text-primary"
-          bgColor="bg-primary/10"
         />
         <StatCard
           icon={CheckCircle}
           label="Successful"
           value={auditStats?.byStatus?.success || 0}
-          trend="98% rate"
-          color="text-green-500"
-          bgColor="bg-green-500/10"
+          trend={successRate !== null ? `${successRate}% rate` : undefined}
+          color="text-green-400"
+          bgColor="bg-green-400/10"
         />
         <StatCard
           icon={ShieldAlert}
           label="Step-up Auth"
           value={auditStats?.stepUpCount || 0}
-          color="text-yellow-500"
-          bgColor="bg-yellow-500/10"
+          color="text-yellow-400"
+          bgColor="bg-yellow-400/10"
         />
         <StatCard
           icon={Lock}
           label="Connections"
-          value={3}
-          color="text-blue-500"
-          bgColor="bg-blue-500/10"
+          value={connectionsCount ?? "—"}
+          color="text-blue-400"
+          bgColor="bg-blue-400/10"
         />
       </motion.div>
 

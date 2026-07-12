@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import {
   Link2,
   Mail,
-  Calendar,
   GitBranch,
   MessageSquare,
   CheckCircle,
@@ -24,7 +23,8 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import DecryptedText from "@/components/ui/decrypted-text";
+import { PageHeader } from "@/components/dashboard/page-header";
+import { fadeUp, stagger } from "@/components/dashboard/motion";
 import type { ConnectedService } from "@/lib/types";
 
 const serviceConfig: Record<
@@ -85,11 +85,6 @@ const serviceConfig: Record<
       "Check membership",
     ],
   },
-};
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
 };
 
 export function ConnectionsPage() {
@@ -180,34 +175,19 @@ export function ConnectionsPage() {
   const connectedCount = services.filter((s) => s.connected).length;
 
   return (
-    <div className="p-6 md:p-8 max-w-4xl mx-auto">
+    <div className="p-6 md:p-8 max-w-5xl mx-auto">
       <motion.div
         initial="hidden"
         animate="visible"
-        variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
+        variants={stagger}
         className="space-y-6"
       >
         {/* Header */}
-        <motion.div variants={fadeUp}>
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold flex items-center gap-2">
-                <Link2 className="w-6 h-6 text-primary" />
-                <DecryptedText
-                  text="Connected Services"
-                  animateOn="view"
-                  speed={35}
-                  sequential
-                  revealDirection="start"
-                  className="text-foreground"
-                  encryptedClassName="text-muted-foreground/40"
-                />
-              </h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                {connectedCount} of {services.length} services connected via
-                Auth0 Token Vault
-              </p>
-            </div>
+        <PageHeader
+          icon={Link2}
+          title="Connected Services"
+          description={`${connectedCount} of ${services.length} services connected via Auth0 Token Vault`}
+          actions={
             <Button
               variant="outline"
               size="sm"
@@ -223,8 +203,8 @@ export function ConnectionsPage() {
                 <RefreshCw className="w-4 h-4" />
               )}
             </Button>
-          </div>
-        </motion.div>
+          }
+        />
 
         {/* Info Banner */}
         <motion.div variants={fadeUp}>

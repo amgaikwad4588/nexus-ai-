@@ -97,9 +97,9 @@ describe("Risk Engine", () => {
   });
 
   describe("getToolRiskMap", () => {
-    it("returns all 15 registered tools", () => {
+    it("returns all 17 registered tools", () => {
       const map = getToolRiskMap();
-      expect(Object.keys(map).length).toBe(15);
+      expect(Object.keys(map).length).toBe(17);
     });
 
     it("every entry has risk, service, and description", () => {

@@ -77,7 +77,7 @@ export function CreativeToggle({
         <div
           className={`
             ${s.track} rounded-full transition-all duration-300 relative overflow-hidden
-            ${checked ? scheme.on : "bg-zinc-700/60 hover:bg-zinc-600"}
+            ${checked ? scheme.on : "bg-muted-foreground/30 hover:bg-muted-foreground/40"}
             ${checked ? `shadow-lg ${scheme.glow} shadow-[0_0_15px_-3px]` : ""}
           `}
         >
