@@ -16,54 +16,38 @@ import {
   Network,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import DecryptedText from "@/components/ui/decrypted-text";
-import DotGrid from "@/components/ui/dot-grid";
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+const fadeInUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0, 0, 1] } },
 };
 
 const stagger = {
-  visible: { transition: { staggerChildren: 0.1 } },
+  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.1 } },
 };
 
 export function LandingPage() {
   return (
-    <div className="min-h-screen overflow-hidden">
-      {/* Dot Grid Background */}
-      <div className="fixed inset-0 -z-10 bg-gradient-to-b from-[#0f0f1a] via-[#12122a] to-[#0a0a14] pointer-events-none">
-        <DotGrid
-          dotSize={3}
-          gap={22}
-          baseColor="#2d2d5a"
-          activeColor="#a5b4fc"
-          proximity={90}
-          shockRadius={140}
-          shockStrength={12}
-          returnDuration={1.1}
-        />
-      </div>
-
+    <div className="min-h-screen overflow-hidden bg-[#0A0A0A]">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/30 backdrop-blur-md border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <Network className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <span className="text-lg font-bold">Nexus</span>
-          </div>
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0A0A0A]/90 backdrop-blur-sm border-b border-[#262626]">
+        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-[#FF3D00] flex items-center justify-center">
+              <Network className="w-4 h-4 text-[#0A0A0A]" />
+            </div>
+            <span className="text-lg font-semibold tracking-tight">Nexus</span>
+          </div>
+          <div className="flex items-center gap-4">
             <a href="/auth/login">
-              <Button variant="ghost" size="sm" className="text-foreground/70 hover:text-foreground hover:bg-white/5">
+              <Button variant="ghost" size="sm">
                 Log in
               </Button>
             </a>
             <a href="/auth/login?screen_hint=signup">
-              <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground border-0">
+              <Button variant="primary" size="sm">
                 Get Started
-                <ArrowRight className="w-4 h-4 ml-1" />
+                <ArrowRight className="w-4 h-4" />
               </Button>
             </a>
           </div>
@@ -72,29 +56,32 @@ export function LandingPage() {
 
       {/* Hero Section */}
       <motion.section
-        className="pt-32 pb-20 px-6 relative"
+        className="pt-32 pb-40 px-6 relative"
         initial="hidden"
         animate="visible"
         variants={stagger}
       >
         <div className="max-w-5xl mx-auto text-center">
-          <motion.div variants={fadeUp} className="mb-6">
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass text-sm font-medium text-muted-foreground">
-              <Sparkles className="w-3.5 h-3.5 text-primary" />
+          <motion.div variants={fadeInUp} className="mb-8">
+            <span className="uppercase text-xs font-medium tracking-widest text-[#737373]">
               Powered by Auth0 Token Vault
             </span>
           </motion.div>
 
           <motion.h1
-            variants={fadeUp}
-            className="text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-[1.1]"
+            variants={fadeInUp}
+            className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tighter mb-8 leading-[0.95]"
           >
-            Your AI Agent, Securely Connected to Your Digital Life
+            Your AI Agent,
+            <br />
+            <span className="text-[#FF3D00]">Securely Connected</span>
+            <br />
+            to Your Digital Life
           </motion.h1>
 
           <motion.p
-            variants={fadeUp}
-            className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10"
+            variants={fadeInUp}
+            className="text-lg md:text-xl text-[#737373] max-w-2xl mx-auto mb-12 leading-relaxed"
           >
             Nexus is an AI command center that connects to Google, GitHub, and
             Slack through Auth0 Token Vault. Full transparency. Complete
@@ -102,263 +89,124 @@ export function LandingPage() {
           </motion.p>
 
           <motion.div
-            variants={fadeUp}
+            variants={fadeInUp}
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
             <a href="/auth/login?screen_hint=signup">
-              <Button size="lg" className="text-base px-10 bg-primary hover:bg-primary/90 text-primary-foreground border-0">
-                <Zap className="w-5 h-5 mr-2" />
+              <Button variant="primary" size="lg">
+                <Zap className="w-5 h-5" />
                 Launch Nexus
-                <ArrowRight className="w-5 h-5 ml-2" />
+                <ArrowRight className="w-5 h-5" />
               </Button>
             </a>
             <a href="#features">
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="text-base px-8"
-              >
+              <Button variant="outline" size="lg">
                 See How It Works
-                <ArrowRight className="w-4 h-4 ml-2" />
+                <ArrowRight className="w-4 h-4" />
               </Button>
             </a>
           </motion.div>
+        </div>
+      </motion.section>
 
-          {/* Hero visual - Terminal/Dashboard preview */}
-          <motion.div
-            variants={fadeUp}
-            className="mt-16 relative max-w-4xl mx-auto"
-          >
-            <div className="glass rounded-2xl p-1 glow-terminal">
-              <div className="bg-card rounded-xl overflow-hidden">
-                {/* Fake terminal header */}
-                <div className="flex items-center gap-2 px-4 py-3 border-b border-border/50">
-                  <div className="flex gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                    <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-                    <div className="w-3 h-3 rounded-full bg-green-500/80" />
-                  </div>
-                  <DecryptedText
-                    text="Nexus AI Agent"
-                    animateOn="view"
-                    speed={50}
-                    sequential
-                    revealDirection="start"
-                    className="text-xs text-muted-foreground ml-2 font-mono"
-                    encryptedClassName="text-xs text-muted-foreground/30 ml-2 font-mono"
-                  />
-                </div>
-                {/* Chat preview */}
-                <div className="p-6 space-y-4 font-mono text-sm">
-                  <div className="flex gap-3">
-                    <DecryptedText
-                      text="You:"
-                      animateOn="view"
-                      speed={40}
-                      sequential
-                      revealDirection="start"
-                      className="text-primary font-bold shrink-0"
-                      encryptedClassName="text-primary/40 font-bold shrink-0"
-                    />
-                    <DecryptedText
-                      text="Summarize my unread emails and post a digest to #general on Slack"
-                      animateOn="view"
-                      speed={50}
-                      sequential
-                      revealDirection="start"
-                      className="text-foreground"
-                      encryptedClassName="text-muted-foreground/40"
-                    />
-                  </div>
-                  <div className="flex gap-3">
-                    <DecryptedText
-                      text="Nexus:"
-                      animateOn="view"
-                      speed={40}
-                      sequential
-                      revealDirection="start"
-                      className="text-chart-2 font-bold shrink-0"
-                      encryptedClassName="text-chart-2/40 font-bold shrink-0"
-                    />
-                    <div className="text-muted-foreground">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Lock className="w-3 h-3 text-primary" />
-                        <DecryptedText
-                          text="Using Token Vault: google-oauth2, slack"
-                          animateOn="view"
-                          speed={45}
-                          sequential
-                          revealDirection="start"
-                          className="text-xs text-primary"
-                          encryptedClassName="text-xs text-primary/40"
-                        />
-                      </div>
-                      <DecryptedText
-                        text="Found 4 unread emails. Posting summary to #general..."
-                        animateOn="view"
-                        speed={50}
-                        sequential
-                        revealDirection="start"
-                        className="text-muted-foreground"
-                        encryptedClassName="text-muted-foreground/30"
-                      />
-                      <div className="mt-2 pl-3 border-l-2 border-primary/30 text-xs space-y-0.5">
-                        <div>
-                          <DecryptedText
-                            text="1. Meeting invite from Sarah (Tomorrow 2pm)"
-                            animateOn="view"
-                            speed={40}
-                            sequential
-                            revealDirection="start"
-                            className="text-muted-foreground"
-                            encryptedClassName="text-muted-foreground/30"
-                          />
-                        </div>
-                        <div>
-                          <DecryptedText
-                            text="2. PR review request from @alex"
-                            animateOn="view"
-                            speed={40}
-                            sequential
-                            revealDirection="start"
-                            className="text-muted-foreground"
-                            encryptedClassName="text-muted-foreground/30"
-                          />
-                        </div>
-                        <div>
-                          <DecryptedText
-                            text="3. Weekly report due Friday"
-                            animateOn="view"
-                            speed={40}
-                            sequential
-                            revealDirection="start"
-                            className="text-muted-foreground"
-                            encryptedClassName="text-muted-foreground/30"
-                          />
-                        </div>
-                        <div>
-                          <DecryptedText
-                            text="4. New feature spec from Product"
-                            animateOn="view"
-                            speed={40}
-                            sequential
-                            revealDirection="start"
-                            className="text-muted-foreground"
-                            encryptedClassName="text-muted-foreground/30"
-                          />
-                        </div>
-                      </div>
-                      <div className="mt-2">
-                        <DecryptedText
-                          text="Digest posted to #general successfully."
-                          animateOn="view"
-                          speed={55}
-                          sequential
-                          revealDirection="start"
-                          className="text-green-400"
-                          encryptedClassName="text-green-400/30"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
+      {/* Stats Bar */}
+      <motion.section
+        className="border-t border-b border-[#262626] py-12 px-6"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+        variants={stagger}
+      >
+        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
+          {[
+            { value: "4", label: "Services" },
+            { value: "0", label: "Exposed Credentials" },
+            { value: "100%", label: "Audit Coverage" },
+            { value: "<50ms", label: "Token Exchange" },
+          ].map((stat, i) => (
+            <motion.div key={i} variants={fadeInUp} className="text-center">
+              <div className="text-3xl md:text-4xl font-bold tracking-tight mb-1">
+                {stat.value}
               </div>
-            </div>
-            {/* Corner badges */}
-            <div className="absolute -top-4 -right-4 glass rounded-lg px-3 py-2 text-xs font-medium flex items-center gap-1.5">
-              <Shield className="w-3.5 h-3.5 text-green-400" />
-              Scoped Access
-            </div>
-            <div className="absolute -bottom-4 -left-4 glass rounded-lg px-3 py-2 text-xs font-medium flex items-center gap-1.5">
-              <Activity className="w-3.5 h-3.5 text-primary" />
-              Full Audit Trail
-            </div>
-          </motion.div>
+              <div className="text-xs uppercase tracking-wider text-[#737373]">
+                {stat.label}
+              </div>
+            </motion.div>
+          ))}
         </div>
       </motion.section>
 
       {/* Features Section */}
       <motion.section
         id="features"
-        className="py-24 px-6 relative"
+        className="py-40 px-6"
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
+        viewport={{ once: true, amount: 0.15 }}
         variants={stagger}
       >
-        <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
-          <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-blue-600/15 rounded-full blur-[100px]" />
-          <div className="absolute bottom-1/4 right-1/4 w-[350px] h-[350px] bg-indigo-600/15 rounded-full blur-[80px]" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[120px]" />
-        </div>
-        <div className="max-w-6xl mx-auto">
-          <motion.div variants={fadeUp} className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+        <div className="max-w-5xl mx-auto">
+          <motion.div variants={fadeInUp} className="mb-20 text-center">
+            <span className="uppercase text-xs font-medium tracking-widest text-[#737373] mb-4 block">
+              Architecture
+            </span>
+            <h2 className="text-4xl md:text-5xl font-bold tracking-tighter">
               Identity-First Agent Architecture
             </h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Every API call is authenticated, scoped, and audited. Your agent
-              never touches raw credentials.
-            </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[
               {
                 icon: KeyRound,
                 title: "Token Vault Integration",
                 description:
                   "OAuth tokens stored securely in Auth0. Your agent exchanges scoped tokens on-demand, never seeing or storing raw credentials.",
-                color: "text-primary",
               },
               {
                 icon: Shield,
                 title: "Permission Firewall",
                 description:
                   "Every action is classified by risk level. High-risk operations trigger step-up authentication via CIBA before executing.",
-                color: "text-green-400",
               },
               {
                 icon: Eye,
                 title: "Full Transparency",
                 description:
                   "See exactly which APIs are called, with what scopes, and when. A real-time permission dashboard shows everything.",
-                color: "text-blue-400",
               },
               {
                 icon: Zap,
                 title: "Cross-Service Orchestration",
                 description:
                   "Chain actions across Google, GitHub, and Slack in a single command. Each service uses its own scoped token.",
-                color: "text-yellow-400",
               },
               {
                 icon: Activity,
                 title: "Real-Time Audit Trail",
                 description:
                   "Every agent action is logged with timestamps, scopes used, risk levels, and approval status. Complete accountability.",
-                color: "text-orange-400",
               },
               {
                 icon: Lock,
                 title: "Step-Up Authentication",
                 description:
                   "Dangerous operations (deleting repos, sending messages) require additional verification via backchannel auth.",
-                color: "text-red-400",
               },
             ].map((feature, i) => (
               <motion.div
                 key={i}
-                variants={fadeUp}
-                className="glass rounded-xl p-6 hover:bg-accent/30 transition-colors"
+                variants={fadeInUp}
+                className="border border-[#262626] bg-[#0F0F0F] p-8 group hover:border-[#404040] transition-colors duration-150 text-center"
               >
-                <div className="mb-4 w-12 h-12 rounded-xl bg-accent/30 flex items-center justify-center">
-                  <feature.icon
-                    className={`w-6 h-6 ${feature.color}`}
-                  />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed">
+                <feature.icon
+                  className="w-6 h-6 text-[#FF3D00] mb-6 mx-auto"
+                  strokeWidth={1.5}
+                />
+                <h3 className="text-lg font-semibold tracking-tight mb-3">
+                  {feature.title}
+                </h3>
+                <p className="text-sm text-[#737373] leading-relaxed">
                   {feature.description}
                 </p>
               </motion.div>
@@ -369,20 +217,23 @@ export function LandingPage() {
 
       {/* How It Works */}
       <motion.section
-        className="py-24 px-6"
+        className="py-24 px-6 bg-[#0F0F0F]"
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
+        viewport={{ once: true, amount: 0.15 }}
         variants={stagger}
       >
         <div className="max-w-5xl mx-auto">
-          <motion.div variants={fadeUp} className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <motion.div variants={fadeInUp} className="mb-12 text-center">
+            <span className="uppercase text-xs font-medium tracking-widest text-[#737373] mb-4 block">
+              Process
+            </span>
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tighter">
               How Nexus Keeps You in Control
             </h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
                 step: "01",
@@ -406,22 +257,27 @@ export function LandingPage() {
                 icons: [Eye, Shield, Activity],
               },
             ].map((item, i) => (
-              <motion.div key={i} variants={fadeUp} className="text-center">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-full glass text-primary font-bold text-lg mb-6">
+              <motion.div
+                key={i}
+                variants={fadeInUp}
+                className="text-center"
+              >
+                <span className="text-4xl md:text-5xl font-bold tracking-tighter text-[#262626] block mb-4">
                   {item.step}
-                </div>
-                <h3 className="text-xl font-semibold mb-3">{item.title}</h3>
-                <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                </span>
+                <h3 className="text-lg font-semibold tracking-tight mb-2">
+                  {item.title}
+                </h3>
+                <p className="text-sm text-[#737373] leading-relaxed mb-4">
                   {item.description}
                 </p>
                 <div className="flex items-center justify-center gap-3">
                   {item.icons.map((Icon, j) => (
-                    <div
+                    <Icon
                       key={j}
-                      className="w-10 h-10 rounded-lg glass flex items-center justify-center"
-                    >
-                      <Icon className="w-5 h-5 text-muted-foreground" />
-                    </div>
+                      className="w-4 h-4 text-[#737373]"
+                      strokeWidth={1.5}
+                    />
                   ))}
                 </div>
               </motion.div>
@@ -430,48 +286,69 @@ export function LandingPage() {
         </div>
       </motion.section>
 
-      {/* CTA */}
+      {/* Testimonial */}
       <motion.section
-        className="py-24 px-6"
+        className="py-40 px-6"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true }}
         variants={stagger}
       >
         <motion.div
-          variants={fadeUp}
-          className="max-w-3xl mx-auto text-center glass rounded-2xl p-12 glow-strong"
+          variants={fadeInUp}
+          className="max-w-4xl mx-auto text-center"
         >
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <blockquote className="font-display text-3xl md:text-4xl lg:text-5xl italic leading-tight tracking-tight mb-8">
+            &ldquo;Finally, an AI agent that shows me exactly what it&apos;s doing with my data.&rdquo;
+          </blockquote>
+          <div className="flex items-center justify-center gap-3">
+            <div className="w-px h-4 bg-[#FF3D00]" />
+            <span className="text-sm text-[#737373] uppercase tracking-wider">
+              Beta User
+            </span>
+          </div>
+        </motion.div>
+      </motion.section>
+
+      {/* CTA Section - Inverted */}
+      <motion.section
+        className="py-40 px-6 bg-[#FAFAFA] text-[#0A0A0A]"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={stagger}
+      >
+        <motion.div
+          variants={fadeInUp}
+          className="max-w-4xl mx-auto text-center"
+        >
+          <h2 className="text-4xl md:text-6xl font-bold tracking-tighter mb-6">
             Ready to Take Control?
           </h2>
-          <p className="text-muted-foreground text-lg mb-8">
+          <p className="text-lg text-[#737373] mb-10 max-w-2xl mx-auto">
             Connect your services, chat with your AI agent, and see exactly
             what it does. No black boxes.
           </p>
           <a href="/auth/login?screen_hint=signup">
-            <Button size="lg" className="text-base px-10 bg-primary hover:bg-primary/90 text-primary-foreground border-0">
-              <Zap className="w-5 h-5 mr-2" />
+            <Button variant="primary" size="lg">
+              <Zap className="w-5 h-5" />
               Get Started Free
-              <ArrowRight className="w-5 h-5 ml-2" />
+              <ArrowRight className="w-5 h-5" />
             </Button>
           </a>
         </motion.div>
       </motion.section>
 
       {/* Footer */}
-      <footer className="py-8 px-6 border-t border-border/50">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-primary flex items-center justify-center">
-              <Network className="w-3 h-3 text-primary-foreground" />
+      <footer className="border-t border-[#262626] py-8 px-6 bg-[#0A0A0A]">
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-6 h-6 bg-[#FF3D00] flex items-center justify-center">
+              <Network className="w-3 h-3 text-[#0A0A0A]" />
             </div>
-            <span className="text-sm font-medium">Nexus</span>
-            <span className="text-xs text-muted-foreground">
-              Built with Auth0 Token Vault
-            </span>
+            <span className="text-sm font-medium tracking-tight">Nexus</span>
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-[#737373] uppercase tracking-wider">
             Built for the Authorized to Act Hackathon 2026
           </p>
         </div>

@@ -14,13 +14,6 @@ import {
   RefreshCw,
   Loader2,
 } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/dashboard/page-header";
@@ -32,15 +25,13 @@ const serviceConfig: Record<
   {
     icon: typeof Mail;
     color: string;
-    bgColor: string;
     description: string;
     capabilities: string[];
   }
 > = {
   google: {
     icon: Mail,
-    color: "text-red-400",
-    bgColor: "bg-red-400/10",
+    color: "text-[#DC2626]",
     description:
       "Access Gmail and Google Calendar to search emails, check availability, and manage events.",
     capabilities: [
@@ -51,8 +42,7 @@ const serviceConfig: Record<
   },
   github: {
     icon: GitBranch,
-    color: "text-white",
-    bgColor: "bg-white/10",
+    color: "text-[#FAFAFA]",
     description:
       "Access your GitHub repositories, issues, and profile information.",
     capabilities: [
@@ -63,8 +53,7 @@ const serviceConfig: Record<
   },
   slack: {
     icon: MessageSquare,
-    color: "text-purple-400",
-    bgColor: "bg-purple-400/10",
+    color: "text-[#A855F7]",
     description:
       "Access Slack channels to read messages, send notifications, and manage conversations.",
     capabilities: [
@@ -75,8 +64,7 @@ const serviceConfig: Record<
   },
   discord: {
     icon: MessageSquare,
-    color: "text-indigo-400",
-    bgColor: "bg-indigo-400/10",
+    color: "text-[#6366F1]",
     description:
       "Access Discord servers, view profile, and check membership details via Token Vault.",
     capabilities: [
@@ -102,7 +90,6 @@ export function ConnectionsPage() {
       const data = await res.json();
       setServices(data.services || []);
     } catch {
-      // Use default disconnected state
       setServices([
         {
           id: "google",
@@ -208,23 +195,21 @@ export function ConnectionsPage() {
 
         {/* Info Banner */}
         <motion.div variants={fadeUp}>
-          <Card className="bg-primary/5 border-primary/20">
-            <CardContent className="pt-6">
-              <div className="flex items-start gap-3">
-                <Shield className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-sm font-medium">
-                    Secured by Auth0 Token Vault
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Your OAuth tokens are stored securely in Auth0&apos;s Token
-                    Vault. Nexus exchanges scoped tokens on-demand and never
-                    stores raw credentials. You can revoke access at any time.
-                  </p>
-                </div>
+          <div className="border border-[#FF3D00]/20 bg-[#FF3D00]/5 p-6">
+            <div className="flex items-start gap-3">
+              <Shield className="w-5 h-5 text-[#FF3D00] mt-0.5 shrink-0" strokeWidth={1.5} />
+              <div>
+                <p className="text-sm font-medium">
+                  Secured by Auth0 Token Vault
+                </p>
+                <p className="text-xs text-[#737373] mt-1">
+                  Your OAuth tokens are stored securely in Auth0&apos;s Token
+                  Vault. Nexus exchanges scoped tokens on-demand and never
+                  stores raw credentials. You can revoke access at any time.
+                </p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </motion.div>
 
         {/* Service Cards */}
@@ -235,29 +220,26 @@ export function ConnectionsPage() {
 
           return (
             <motion.div key={service.id} variants={fadeUp}>
-              <Card>
-                <CardHeader>
+              <div className="border border-[#262626] bg-[#0F0F0F]">
+                {/* Header */}
+                <div className="border-b border-[#262626] px-6 py-4">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`w-12 h-12 rounded-xl ${config.bgColor} flex items-center justify-center`}
-                      >
-                        <Icon className={`w-6 h-6 ${config.color}`} />
-                      </div>
+                    <div className="flex items-center gap-4">
+                      <Icon className={`w-5 h-5 ${config.color}`} strokeWidth={1.5} />
                       <div>
-                        <CardTitle className="text-lg">
+                        <h3 className="text-base font-semibold tracking-tight">
                           {service.name}
-                        </CardTitle>
-                        <CardDescription className="text-xs">
+                        </h3>
+                        <p className="text-xs text-[#737373]">
                           {config.description}
-                        </CardDescription>
+                        </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div>
                       {service.connected ? (
                         <Badge
                           variant="outline"
-                          className="text-green-400 border-green-400/30 bg-green-400/10"
+                          className="text-[#22C55E] border-[#22C55E]/30"
                         >
                           <CheckCircle className="w-3 h-3 mr-1" />
                           Connected
@@ -265,7 +247,7 @@ export function ConnectionsPage() {
                       ) : (
                         <Badge
                           variant="outline"
-                          className="text-muted-foreground"
+                          className="text-[#737373]"
                         >
                           <XCircle className="w-3 h-3 mr-1" />
                           Not Connected
@@ -273,52 +255,54 @@ export function ConnectionsPage() {
                       )}
                     </div>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {/* Scopes */}
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground mb-2">
-                        Requested Scopes
-                      </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {service.scopes.map((scope) => (
-                          <Badge
-                            key={scope}
-                            variant="secondary"
-                            className="text-xs font-mono"
-                          >
-                            {scope}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
+                </div>
 
-                    {/* Capabilities */}
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground mb-2">
-                        Capabilities
-                      </p>
-                      <ul className="space-y-1">
-                        {config.capabilities.map((cap, i) => (
-                          <li
-                            key={i}
-                            className="text-xs text-muted-foreground flex items-center gap-2"
-                          >
-                            <div
-                              className={`w-1.5 h-1.5 rounded-full ${
-                                service.connected
-                                  ? "bg-green-400"
-                                  : "bg-muted-foreground/30"
-                              }`}
-                            />
-                            {cap}
-                          </li>
-                        ))}
-                      </ul>
+                {/* Content */}
+                <div className="px-6 py-4 space-y-4">
+                  {/* Scopes */}
+                  <div>
+                    <p className="text-xs text-[#737373] uppercase tracking-wider mb-2">
+                      Requested Scopes
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {service.scopes.map((scope) => (
+                        <Badge
+                          key={scope}
+                          variant="secondary"
+                          className="text-xs font-mono"
+                        >
+                          {scope}
+                        </Badge>
+                      ))}
                     </div>
+                  </div>
 
-                    {/* Connect / Disconnect Button */}
+                  {/* Capabilities */}
+                  <div>
+                    <p className="text-xs text-[#737373] uppercase tracking-wider mb-2">
+                      Capabilities
+                    </p>
+                    <ul className="space-y-1.5">
+                      {config.capabilities.map((cap, i) => (
+                        <li
+                          key={i}
+                          className="text-xs text-[#737373] flex items-center gap-2"
+                        >
+                          <div
+                            className={`w-1 h-1 ${
+                              service.connected
+                                ? "bg-[#22C55E]"
+                                : "bg-[#737373]/30"
+                            }`}
+                          />
+                          {cap}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Connect / Disconnect Button */}
+                  <div className="pt-2">
                     {!service.connected && service.id !== "slack" && (
                       <a
                         href={`/api/connect?connection=${service.connection}`}
@@ -330,12 +314,10 @@ export function ConnectionsPage() {
                       </a>
                     )}
 
-
-
                     {service.connected && service.id !== "slack" && (
                       <div className="flex items-center justify-between">
                         {service.lastUsed && (
-                          <p className="text-[10px] text-muted-foreground">
+                          <p className="text-[10px] text-[#737373]">
                             Connected:{" "}
                             {new Date(service.lastUsed).toLocaleDateString()}
                           </p>
@@ -356,12 +338,11 @@ export function ConnectionsPage() {
                       </div>
                     )}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </motion.div>
           );
         })}
-
       </motion.div>
     </div>
   );

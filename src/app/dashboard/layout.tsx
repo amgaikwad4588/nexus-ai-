@@ -1,7 +1,6 @@
 import { auth0 } from "@/lib/auth0";
 import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/dashboard/sidebar";
-import { DotGridBackground } from "@/components/ui/dot-grid-background";
 
 export default async function DashboardLayout({
   children,
@@ -15,8 +14,7 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen overflow-hidden relative">
-      <DotGridBackground />
+    <div className="flex h-screen overflow-hidden bg-[#0A0A0A]">
       <Sidebar userName={session.user.name || session.user.email} />
       <main className="flex-1 overflow-auto relative z-10">{children}</main>
     </div>

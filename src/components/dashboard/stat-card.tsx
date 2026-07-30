@@ -2,7 +2,6 @@
 
 import type { LucideIcon } from "lucide-react";
 import { TrendingUp } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 
 interface StatCardProps {
   icon: LucideIcon;
@@ -10,7 +9,6 @@ interface StatCardProps {
   value: string | number;
   trend?: string;
   color?: string;
-  bgColor?: string;
 }
 
 export function StatCard({
@@ -18,30 +16,30 @@ export function StatCard({
   label,
   value,
   trend,
-  color = "text-primary",
-  bgColor = "bg-primary/10",
+  color = "text-[#FF3D00]",
 }: StatCardProps) {
   return (
-    <Card className="relative overflow-hidden group hover:shadow-lg transition-all duration-300">
-      <CardContent className="flex items-start justify-between gap-2">
+    <div className="border border-[#262626] bg-[#0F0F0F] p-6 group">
+      <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide truncate">
+          <p className="text-xs text-[#737373] font-medium uppercase tracking-wider truncate">
             {label}
           </p>
-          <p className="text-2xl font-bold mt-1 tracking-tight">{value}</p>
+          <p className="text-4xl md:text-5xl font-bold mt-2 tracking-tighter">
+            {value}
+          </p>
           {trend && (
-            <p className="text-xs text-green-400 flex items-center gap-1 mt-1">
+            <p className="text-xs text-[#FF3D00] flex items-center gap-1 mt-2">
               <TrendingUp className="w-3 h-3" />
               {trend}
             </p>
           )}
         </div>
-        <div
-          className={`w-10 h-10 rounded-xl ${bgColor} flex items-center justify-center shrink-0`}
-        >
-          <Icon className={`w-5 h-5 ${color}`} />
-        </div>
-      </CardContent>
-    </Card>
+        <Icon
+          className={`w-5 h-5 ${color} shrink-0`}
+          strokeWidth={1.5}
+        />
+      </div>
+    </div>
   );
 }

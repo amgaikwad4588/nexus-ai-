@@ -18,12 +18,6 @@ import {
   FileJson,
   X,
 } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -33,25 +27,25 @@ import { fadeUp, stagger } from "@/components/dashboard/motion";
 import type { AuditEntry } from "@/lib/types";
 
 const serviceIcons: Record<string, { icon: typeof Mail; color: string }> = {
-  google: { icon: Mail, color: "text-red-400" },
-  github: { icon: GitBranch, color: "text-white" },
-  slack: { icon: MessageSquare, color: "text-purple-400" },
-  discord: { icon: MessageSquare, color: "text-indigo-400" },
-  system: { icon: Shield, color: "text-primary" },
+  google: { icon: Mail, color: "text-[#DC2626]" },
+  github: { icon: GitBranch, color: "text-[#FAFAFA]" },
+  slack: { icon: MessageSquare, color: "text-[#A855F7]" },
+  discord: { icon: MessageSquare, color: "text-[#6366F1]" },
+  system: { icon: Shield, color: "text-[#FF3D00]" },
 };
 
 const statusConfig = {
-  success: { icon: CheckCircle, color: "text-green-400", label: "Success" },
-  failed: { icon: XCircle, color: "text-red-400", label: "Failed" },
-  pending_approval: { icon: Clock, color: "text-yellow-400", label: "Pending" },
-  denied: { icon: XCircle, color: "text-red-400", label: "Denied" },
+  success: { icon: CheckCircle, color: "text-[#22C55E]", label: "Success" },
+  failed: { icon: XCircle, color: "text-[#DC2626]", label: "Failed" },
+  pending_approval: { icon: Clock, color: "text-[#EAB308]", label: "Pending" },
+  denied: { icon: XCircle, color: "text-[#DC2626]", label: "Denied" },
 };
 
 const riskColors = {
-  low: "text-green-400 bg-green-400/10 border-green-400/30",
-  medium: "text-yellow-400 bg-yellow-400/10 border-yellow-400/30",
-  high: "text-orange-400 bg-orange-400/10 border-orange-400/30",
-  critical: "text-red-400 bg-red-400/10 border-red-400/30",
+  low: "text-[#22C55E] bg-[#22C55E]/10 border-[#22C55E]/30",
+  medium: "text-[#EAB308] bg-[#EAB308]/10 border-[#EAB308]/30",
+  high: "text-[#F97316] bg-[#F97316]/10 border-[#F97316]/30",
+  critical: "text-[#DC2626] bg-[#DC2626]/10 border-[#DC2626]/30",
 };
 
 interface AuditStats {
@@ -134,7 +128,7 @@ export function AuditPage() {
         {/* Stats */}
         {stats && (
           <motion.div variants={fadeUp}>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               <StatCard
                 icon={Activity}
                 label="Total Actions"
@@ -144,29 +138,25 @@ export function AuditPage() {
                 icon={CheckCircle}
                 label="Success"
                 value={stats.byStatus.success || 0}
-                color="text-green-400"
-                bgColor="bg-green-400/10"
+                color="text-[#22C55E]"
               />
               <StatCard
                 icon={XCircle}
                 label="Failed"
                 value={stats.byStatus.failed || 0}
-                color="text-red-400"
-                bgColor="bg-red-400/10"
+                color="text-[#DC2626]"
               />
               <StatCard
                 icon={Shield}
                 label="Step-Up Auth"
                 value={stats.stepUpCount}
-                color="text-yellow-400"
-                bgColor="bg-yellow-400/10"
+                color="text-[#EAB308]"
               />
               <StatCard
                 icon={BarChart3}
                 label="Services"
                 value={Object.values(stats.byService).filter((v) => v > 0).length}
-                color="text-blue-400"
-                bgColor="bg-blue-400/10"
+                color="text-[#3B82F6]"
               />
             </div>
           </motion.div>
@@ -175,8 +165,8 @@ export function AuditPage() {
         {/* Filter */}
         <motion.div variants={fadeUp}>
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">Filter:</span>
+            <Filter className="w-4 h-4 text-[#737373]" />
+            <span className="text-xs text-[#737373] uppercase tracking-wider">Filter:</span>
             <Button
               variant={filter === null ? "secondary" : "ghost"}
               size="sm"
@@ -198,7 +188,7 @@ export function AuditPage() {
                     setFilter(filter === service ? null : service)
                   }
                 >
-                  <Icon className={`w-3 h-3 mr-1 ${config.color}`} />
+                  <Icon className={`w-3 h-3 mr-1 ${config.color}`} strokeWidth={1.5} />
                   {service.charAt(0).toUpperCase() + service.slice(1)}
                 </Button>
               );
@@ -209,49 +199,49 @@ export function AuditPage() {
         {/* Raw JSON Viewer */}
         {showRawJson && (
           <motion.div variants={fadeUp}>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <FileJson className="w-4 h-4 text-primary" />
+            <div className="border border-[#262626] bg-[#0F0F0F]">
+              <div className="border-b border-[#262626] px-6 py-4 flex items-center justify-between">
+                <h3 className="text-sm font-semibold tracking-tight flex items-center gap-2">
+                  <FileJson className="w-4 h-4 text-[#FF3D00]" strokeWidth={1.5} />
                   Raw JSON — audit-log.json
-                </CardTitle>
+                </h3>
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size="icon-sm"
                   onClick={() => setShowRawJson(false)}
                 >
                   <X className="w-4 h-4" />
                 </Button>
-              </CardHeader>
-              <CardContent>
-                <div className="max-h-125 overflow-auto rounded-lg">
-                  <pre className="text-xs font-mono bg-black/40 p-4 whitespace-pre-wrap break-all">
+              </div>
+              <div className="p-6">
+                <div className="max-h-125 overflow-auto">
+                  <pre className="text-xs font-mono bg-[#0A0A0A] p-4 whitespace-pre-wrap break-all">
                     {JSON.stringify(entries, null, 2)}
                   </pre>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </motion.div>
         )}
 
         {/* Audit Log */}
         <motion.div variants={fadeUp}>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Activity Log</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <div className="border border-[#262626] bg-[#0F0F0F]">
+            <div className="border-b border-[#262626] px-6 py-4">
+              <h3 className="text-sm font-semibold tracking-tight">Activity Log</h3>
+            </div>
+            <div className="px-6 py-4">
               {filteredEntries.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  <Activity className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                  <p className="text-sm">No audit entries yet</p>
-                  <p className="text-xs mt-1">
+                <div className="text-center py-12">
+                  <Activity className="w-10 h-10 text-[#262626] mx-auto mb-3" strokeWidth={1.5} />
+                  <p className="text-sm text-[#737373]">No audit entries yet</p>
+                  <p className="text-xs text-[#737373]/60 mt-1">
                     Start chatting with Nexus to see activity here
                   </p>
                 </div>
               ) : (
                 <ScrollArea className="max-h-[600px]">
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {filteredEntries.map((entry, i) => {
                       const svc = serviceIcons[entry.service] || serviceIcons.system;
                       const SvcIcon = svc.icon;
@@ -265,25 +255,24 @@ export function AuditPage() {
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: i * 0.03 }}
-                          className="flex items-center gap-3 p-3 rounded-lg bg-accent/10 hover:bg-accent/20 transition-colors"
+                          className="flex items-center gap-3 py-3 border-b border-[#262626] last:border-0"
                         >
-                          <div className="w-8 h-8 rounded-lg bg-accent/30 flex items-center justify-center shrink-0">
-                            <SvcIcon
-                              className={`w-4 h-4 ${svc.color}`}
-                            />
-                          </div>
+                          <SvcIcon
+                            className={`w-4 h-4 ${svc.color} shrink-0`}
+                            strokeWidth={1.5}
+                          />
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium truncate">
                               {entry.action}
                             </p>
                             <div className="flex items-center gap-2 mt-0.5">
-                              <span className="text-[10px] text-muted-foreground">
+                              <span className="text-[10px] text-[#737373]">
                                 {new Date(entry.timestamp).toLocaleTimeString()}
                               </span>
                               {entry.scopes.map((scope) => (
                                 <span
                                   key={scope}
-                                  className="text-[10px] font-mono text-muted-foreground"
+                                  className="text-[10px] font-mono text-[#737373]"
                                 >
                                   {scope}
                                 </span>
@@ -294,7 +283,7 @@ export function AuditPage() {
                             {entry.stepUpRequired && (
                               <Badge
                                 variant="outline"
-                                className="text-[10px] text-yellow-400 border-yellow-400/30"
+                                className="text-[10px] text-[#EAB308] border-[#EAB308]/30"
                               >
                                 <Shield className="w-2.5 h-2.5 mr-0.5" />
                                 Step-Up
@@ -316,8 +305,8 @@ export function AuditPage() {
                   </div>
                 </ScrollArea>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </motion.div>
       </motion.div>
     </div>

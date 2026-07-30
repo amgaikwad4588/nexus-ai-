@@ -17,9 +17,7 @@ import {
   Network,
 } from "lucide-react";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { fadeUp, stagger } from "@/components/dashboard/motion";
@@ -31,24 +29,24 @@ interface QuickActionProps {
   description: string;
   href: string;
   color: string;
-  bgColor: string;
 }
 
-function QuickAction({ icon: Icon, title, description, color, bgColor, href }: QuickActionProps) {
+function QuickAction({ icon: Icon, title, description, color, href }: QuickActionProps) {
   return (
     <Link href={href}>
-      <Card className="transition-colors cursor-pointer group h-full hover:bg-accent/30">
-        <CardContent className="flex items-center gap-4">
-          <div className={`w-11 h-11 rounded-lg ${bgColor} flex items-center justify-center shrink-0`}>
-            <Icon className={`w-5 h-5 ${color}`} />
-          </div>
+      <div className="border border-[#262626] bg-[#0F0F0F] p-6 transition-colors duration-150 cursor-pointer group h-full hover:border-[#404040]">
+        <div className="flex items-center gap-4">
+          <Icon
+            className={`w-5 h-5 ${color} shrink-0`}
+            strokeWidth={1.5}
+          />
           <div className="flex-1 min-w-0">
-            <h3 className="font-medium text-sm">{title}</h3>
-            <p className="text-xs text-muted-foreground">{description}</p>
+            <h3 className="font-medium text-sm tracking-tight">{title}</h3>
+            <p className="text-xs text-[#737373] mt-1">{description}</p>
           </div>
-          <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:translate-x-0.5 transition-transform shrink-0" />
-        </CardContent>
-      </Card>
+          <ArrowRight className="w-4 h-4 text-[#737373] group-hover:text-[#FAFAFA] transition-colors duration-150 shrink-0" />
+        </div>
+      </div>
     </Link>
   );
 }
@@ -98,27 +96,19 @@ export function DashboardOverview({
       className="min-h-screen p-6 md:p-8 max-w-7xl mx-auto"
     >
       {/* Welcome Section */}
-      <motion.div variants={fadeUp} className="mb-8">
+      <motion.div variants={fadeUp} className="mb-12">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <Avatar className="w-14 h-14 ring-2 ring-border">
-              <AvatarImage src={userAvatar} />
-              <AvatarFallback className="bg-primary text-primary-foreground text-lg">
-                {userName.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight">
-                Welcome back, {userName.split(" ")[0]}
-              </h1>
-              <p className="text-muted-foreground text-sm">
-                Your AI agent is ready to help
-              </p>
-            </div>
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tighter">
+              Welcome back, {userName.split(" ")[0]}
+            </h1>
+            <p className="text-[#737373] mt-2">
+              Your AI agent is ready to help
+            </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <Link href="/dashboard/chat">
-              <Button size="sm" className="gap-2">
+              <Button variant="primary" size="default">
                 <MessageSquare className="w-4 h-4" />
                 New Chat
               </Button>
@@ -128,7 +118,7 @@ export function DashboardOverview({
       </motion.div>
 
       {/* Stats Grid */}
-      <motion.div variants={fadeUp} className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <motion.div variants={fadeUp} className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
         <StatCard
           icon={Activity}
           label="Total Actions"
@@ -139,115 +129,99 @@ export function DashboardOverview({
           label="Successful"
           value={auditStats?.byStatus?.success || 0}
           trend={successRate !== null ? `${successRate}% rate` : undefined}
-          color="text-green-400"
-          bgColor="bg-green-400/10"
+          color="text-[#22C55E]"
         />
         <StatCard
           icon={ShieldAlert}
           label="Step-up Auth"
           value={auditStats?.stepUpCount || 0}
-          color="text-yellow-400"
-          bgColor="bg-yellow-400/10"
+          color="text-[#EAB308]"
         />
         <StatCard
           icon={Lock}
           label="Connections"
           value={connectionsCount ?? "—"}
-          color="text-blue-400"
-          bgColor="bg-blue-400/10"
+          color="text-[#3B82F6]"
         />
       </motion.div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
         {/* Quick Actions - 2 columns on large screens */}
-        <motion.div variants={fadeUp} className="lg:col-span-2 space-y-4">
-          <h2 className="text-lg font-semibold">Quick Actions</h2>
+        <motion.div variants={fadeUp} className="lg:col-span-2">
+          <h2 className="text-lg font-semibold tracking-tight mb-4">Quick Actions</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <QuickAction
               icon={MessageSquare}
               title="Chat with Agent"
               description="Start a conversation"
               href="/dashboard/chat"
-              color="text-primary"
-              bgColor="bg-primary/10"
+              color="text-[#FF3D00]"
             />
             <QuickAction
               icon={Link2}
               title="Connections"
               description="Manage your services"
               href="/dashboard/connections"
-              color="text-blue-400"
-              bgColor="bg-blue-400/10"
+              color="text-[#3B82F6]"
             />
             <QuickAction
               icon={Shield}
               title="Permissions"
               description="View access scopes"
               href="/dashboard/permissions"
-              color="text-green-400"
-              bgColor="bg-green-400/10"
+              color="text-[#22C55E]"
             />
             <QuickAction
               icon={Activity}
               title="Audit Trail"
               description="Review activity"
               href="/dashboard/audit"
-              color="text-orange-400"
-              bgColor="bg-orange-400/10"
+              color="text-[#F97316]"
             />
           </div>
         </motion.div>
 
         {/* Architecture Flow */}
         <motion.div variants={fadeUp}>
-          <Card className="h-full">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <KeyRound className="w-4 h-4 text-primary" />
+          <div className="border border-[#262626] bg-[#0F0F0F] h-full">
+            <div className="border-b border-[#262626] px-6 py-4">
+              <h3 className="text-sm font-semibold tracking-tight flex items-center gap-2">
+                <KeyRound className="w-4 h-4 text-[#FF3D00]" strokeWidth={1.5} />
                 How It Works
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-center gap-2 flex-wrap">
-                <div className="flex flex-col items-center gap-1">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Avatar className="w-7 h-7">
-                      <AvatarImage src={userAvatar} />
-                      <AvatarFallback className="bg-primary text-primary-foreground text-[10px]">You</AvatarFallback>
-                    </Avatar>
+              </h3>
+            </div>
+            <div className="p-6">
+              <div className="flex items-center justify-center gap-3 flex-wrap">
+                <div className="flex flex-col items-center gap-2">
+                  <div className="w-10 h-10 border border-[#262626] flex items-center justify-center">
+                    <span className="text-xs font-medium text-[#737373]">You</span>
                   </div>
-                  <span className="text-[10px] text-muted-foreground">You</span>
                 </div>
-                <ArrowRight className="w-4 h-4 text-muted-foreground -mt-4" />
-                <div className="flex flex-col items-center gap-1">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Network className="w-5 h-5 text-primary" />
+                <ArrowRight className="w-4 h-4 text-[#262626]" />
+                <div className="flex flex-col items-center gap-2">
+                  <div className="w-10 h-10 border border-[#262626] flex items-center justify-center">
+                    <Network className="w-4 h-4 text-[#FF3D00]" strokeWidth={1.5} />
                   </div>
-                  <span className="text-[10px] text-muted-foreground">Nexus</span>
                 </div>
-                <ArrowRight className="w-4 h-4 text-muted-foreground -mt-4" />
-                <div className="flex flex-col items-center gap-1">
-                  <div className="w-10 h-10 rounded-lg bg-green-400/10 flex items-center justify-center border border-green-400/20">
-                    <Shield className="w-5 h-5 text-green-400" />
+                <ArrowRight className="w-4 h-4 text-[#262626]" />
+                <div className="flex flex-col items-center gap-2">
+                  <div className="w-10 h-10 border border-[#262626] flex items-center justify-center">
+                    <Shield className="w-4 h-4 text-[#22C55E]" strokeWidth={1.5} />
                   </div>
-                  <span className="text-[10px] text-muted-foreground">Vault</span>
                 </div>
-                <ArrowRight className="w-4 h-4 text-muted-foreground -mt-4" />
-                <div className="flex flex-col items-center gap-1">
-                  <div className="flex gap-1">
-                    <div className="w-8 h-8 rounded-lg bg-red-400/10 flex items-center justify-center">
-                      <Mail className="w-4 h-4 text-red-400" />
-                    </div>
+                <ArrowRight className="w-4 h-4 text-[#262626]" />
+                <div className="flex flex-col items-center gap-2">
+                  <div className="w-10 h-10 border border-[#262626] flex items-center justify-center">
+                    <Mail className="w-4 h-4 text-[#737373]" strokeWidth={1.5} />
                   </div>
-                  <span className="text-[10px] text-muted-foreground">Services</span>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground text-center mt-4">
+              <p className="text-xs text-[#737373] text-center mt-6">
                 Secure token-based authentication with minimal privileges
               </p>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </motion.div>
       </div>
 
@@ -255,97 +229,93 @@ export function DashboardOverview({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Activity */}
         <motion.div variants={fadeUp} className="lg:col-span-2">
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Activity className="w-5 h-5 text-orange-400" />
-                  Recent Activity
-                </CardTitle>
-                <Link href="/dashboard/audit">
-                  <Button variant="ghost" size="sm" className="text-xs gap-1">
-                    View all <ArrowRight className="w-3 h-3" />
-                  </Button>
-                </Link>
-              </div>
-            </CardHeader>
-            <CardContent>
+          <div className="border border-[#262626] bg-[#0F0F0F]">
+            <div className="border-b border-[#262626] px-6 py-4 flex items-center justify-between">
+              <h3 className="text-sm font-semibold tracking-tight flex items-center gap-2">
+                <Activity className="w-4 h-4 text-[#F97316]" strokeWidth={1.5} />
+                Recent Activity
+              </h3>
+              <Link href="/dashboard/audit">
+                <Button variant="ghost" size="sm" className="text-xs">
+                  View all <ArrowRight className="w-3 h-3" />
+                </Button>
+              </Link>
+            </div>
+            <div className="p-6">
               {auditStats && auditStats.total > 0 ? (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {recentEntries.map((entry) => (
-                    <motion.div
+                    <div
                       key={entry.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="flex items-center justify-between p-3 rounded-lg bg-accent/30 hover:bg-accent/50 transition-colors"
+                      className="flex items-center justify-between py-3 border-b border-[#262626] last:border-0"
                     >
                       <div className="flex items-center gap-3">
-                        <div className={`w-2 h-2 rounded-full ${
-                          entry.riskLevel === "low" ? "bg-green-500" :
-                          entry.riskLevel === "medium" ? "bg-yellow-500" : "bg-red-500"
+                        <div className={`w-2 h-2 ${
+                          entry.riskLevel === "low" ? "bg-[#22C55E]" :
+                          entry.riskLevel === "medium" ? "bg-[#EAB308]" : "bg-[#DC2626]"
                         }`} />
-                        <span className="text-sm font-medium truncate max-w-[200px] md:max-w-[300px]">{entry.action}</span>
+                        <span className="text-sm font-medium truncate max-w-[200px] md:max-w-[300px]">
+                          {entry.action}
+                        </span>
                       </div>
                       <div className="flex items-center gap-3">
                         <Badge
                           variant="outline"
                           className={`text-[10px] ${
                             entry.riskLevel === "low"
-                              ? "text-green-400 border-green-400/30"
+                              ? "text-[#22C55E] border-[#22C55E]/30"
                               : entry.riskLevel === "medium"
-                              ? "text-yellow-400 border-yellow-400/30"
-                              : "text-red-400 border-red-400/30"
+                              ? "text-[#EAB308] border-[#EAB308]/30"
+                              : "text-[#DC2626] border-[#DC2626]/30"
                           }`}
                         >
                           {entry.riskLevel}
                         </Badge>
-                        <span className="text-xs text-muted-foreground hidden sm:inline">
+                        <span className="text-xs text-[#737373] hidden sm:inline">
                           {new Date(entry.timestamp).toLocaleTimeString()}
                         </span>
                       </div>
-                    </motion.div>
+                    </div>
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8">
-                  <Activity className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-                  <p className="text-sm text-muted-foreground">No activity yet</p>
-                  <p className="text-xs text-muted-foreground/70">Start chatting to see your activity here</p>
+                <div className="text-center py-12">
+                  <Activity className="w-12 h-12 text-[#262626] mx-auto mb-3" strokeWidth={1.5} />
+                  <p className="text-sm text-[#737373]">No activity yet</p>
+                  <p className="text-xs text-[#737373]/60 mt-1">Start chatting to see your activity here</p>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </motion.div>
 
         {/* Get Started CTA */}
         <motion.div variants={fadeUp}>
-          <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border-primary/20 h-full">
-            <CardContent className="pt-6 h-full flex flex-col">
-              <div className="flex-1">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-                  <Zap className="w-6 h-6 text-primary" />
-                </div>
-                <h3 className="font-semibold text-lg mb-2">Ready to get started?</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Connect your services and start chatting with your AI agent for secure, scoped access.
-                </p>
+          <div className="border border-[#262626] bg-[#0F0F0F] h-full flex flex-col">
+            <div className="p-6 flex-1">
+              <div className="w-12 h-12 border border-[#262626] flex items-center justify-center mb-4">
+                <Zap className="w-6 h-6 text-[#FF3D00]" strokeWidth={1.5} />
               </div>
-              <div className="space-y-2">
-                <Link href="/dashboard/connections" className="block">
-                  <Button variant="outline" className="w-full gap-2">
-                    <Link2 className="w-4 h-4" />
-                    Connect Services
-                  </Button>
-                </Link>
-                <Link href="/dashboard/chat" className="block">
-                  <Button className="w-full gap-2">
-                    <MessageSquare className="w-4 h-4" />
-                    Start Chatting
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
+              <h3 className="font-semibold text-lg tracking-tight mb-2">Ready to get started?</h3>
+              <p className="text-sm text-[#737373]">
+                Connect your services and start chatting with your AI agent for secure, scoped access.
+              </p>
+            </div>
+            <div className="p-6 pt-0 space-y-3">
+              <Link href="/dashboard/connections" className="block">
+                <Button variant="outline" className="w-full">
+                  <Link2 className="w-4 h-4" />
+                  Connect Services
+                </Button>
+              </Link>
+              <Link href="/dashboard/chat" className="block">
+                <Button variant="primary" className="w-full">
+                  <MessageSquare className="w-4 h-4" />
+                  Start Chatting
+                </Button>
+              </Link>
+            </div>
+          </div>
         </motion.div>
       </div>
     </motion.div>

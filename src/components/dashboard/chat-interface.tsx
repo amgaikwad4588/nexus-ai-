@@ -33,20 +33,20 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 const toolIcons: Record<string, { icon: typeof Mail; color: string; service: string }> = {
-  searchGmail: { icon: Mail, color: "text-red-400", service: "Google" },
-  checkCalendar: { icon: Calendar, color: "text-blue-400", service: "Google" },
-  listGitHubRepos: { icon: GitBranch, color: "text-white", service: "GitHub" },
-  getGitHubIssues: { icon: GitBranch, color: "text-white", service: "GitHub" },
-  createGitHubIssue: { icon: GitBranch, color: "text-orange-400", service: "GitHub" },
-  getGitHubProfile: { icon: GitBranch, color: "text-white", service: "GitHub" },
-  listSlackChannels: { icon: MessageSquare, color: "text-purple-400", service: "Slack" },
-  sendSlackMessage: { icon: MessageSquare, color: "text-purple-400", service: "Slack" },
-  getSlackChannelHistory: { icon: MessageSquare, color: "text-purple-400", service: "Slack" },
-  getDiscordProfile: { icon: MessageSquare, color: "text-indigo-400", service: "Discord" },
-  listDiscordGuilds: { icon: MessageSquare, color: "text-indigo-400", service: "Discord" },
-  getDiscordGuildMember: { icon: MessageSquare, color: "text-indigo-400", service: "Discord" },
-  listDiscordChannels: { icon: MessageSquare, color: "text-indigo-400", service: "Discord" },
-  sendDiscordMessage: { icon: MessageSquare, color: "text-indigo-400", service: "Discord" },
+  searchGmail: { icon: Mail, color: "text-[#DC2626]", service: "Google" },
+  checkCalendar: { icon: Calendar, color: "text-[#3B82F6]", service: "Google" },
+  listGitHubRepos: { icon: GitBranch, color: "text-[#FAFAFA]", service: "GitHub" },
+  getGitHubIssues: { icon: GitBranch, color: "text-[#FAFAFA]", service: "GitHub" },
+  createGitHubIssue: { icon: GitBranch, color: "text-[#F97316]", service: "GitHub" },
+  getGitHubProfile: { icon: GitBranch, color: "text-[#FAFAFA]", service: "GitHub" },
+  listSlackChannels: { icon: MessageSquare, color: "text-[#A855F7]", service: "Slack" },
+  sendSlackMessage: { icon: MessageSquare, color: "text-[#A855F7]", service: "Slack" },
+  getSlackChannelHistory: { icon: MessageSquare, color: "text-[#A855F7]", service: "Slack" },
+  getDiscordProfile: { icon: MessageSquare, color: "text-[#6366F1]", service: "Discord" },
+  listDiscordGuilds: { icon: MessageSquare, color: "text-[#6366F1]", service: "Discord" },
+  getDiscordGuildMember: { icon: MessageSquare, color: "text-[#6366F1]", service: "Discord" },
+  listDiscordChannels: { icon: MessageSquare, color: "text-[#6366F1]", service: "Discord" },
+  sendDiscordMessage: { icon: MessageSquare, color: "text-[#6366F1]", service: "Discord" },
 };
 
 const suggestedPrompts = [
@@ -58,41 +58,38 @@ const suggestedPrompts = [
   "What GitHub issues are assigned to me?",
 ];
 
-// Tracks approval state for pending actions
 interface ApprovalState {
   status: "pending" | "approving" | "approved" | "denied" | "executed" | "error";
   result?: Record<string, unknown>;
   error?: string;
 }
 
-// Write tools that require step-up auth
 const WRITE_TOOLS = new Set(["createGitHubIssue", "sendSlackMessage", "sendDiscordMessage"]);
 
-// Risk level styling configuration
 const RISK_STYLES = {
   medium: {
-    border: "border-yellow-500/30",
-    bg: "bg-yellow-500/5",
-    headerColor: "text-yellow-400",
+    border: "border-[#EAB308]/30",
+    bg: "bg-[#EAB308]/5",
+    headerColor: "text-[#EAB308]",
     headerIcon: ShieldAlert,
     headerText: "Step-Up Authentication Required",
     badgeText: "write",
-    badgeClass: "text-yellow-400 border-yellow-400/30 bg-yellow-400/10",
+    badgeClass: "text-[#EAB308] border-[#EAB308]/30 bg-[#EAB308]/10",
     approveText: "Authorize & Execute",
     loadingText: "Verifying identity and executing action...",
-    loadingColor: "text-yellow-400",
+    loadingColor: "text-[#EAB308]",
   },
   high: {
-    border: "border-red-500/30",
-    bg: "bg-red-500/5",
-    headerColor: "text-red-400",
+    border: "border-[#DC2626]/30",
+    bg: "bg-[#DC2626]/5",
+    headerColor: "text-[#DC2626]",
     headerIcon: Shield,
     headerText: "Re-Authentication Required — High Risk",
     badgeText: "destructive",
-    badgeClass: "text-red-400 border-red-400/30 bg-red-400/10",
+    badgeClass: "text-[#DC2626] border-[#DC2626]/30 bg-[#DC2626]/10",
     approveText: "Re-Authenticate & Execute",
     loadingText: "Re-authenticating and executing action...",
-    loadingColor: "text-red-400",
+    loadingColor: "text-[#DC2626]",
   },
 };
 
@@ -120,7 +117,7 @@ function StepUpApprovalCard({
   const isDiscord = action === "sendDiscordMessage";
   const isSlack = action === "sendSlackMessage";
   const Icon = isGitHub ? GitBranch : MessageSquare;
-  const serviceColor = isGitHub ? "text-orange-400" : isDiscord ? "text-indigo-400" : "text-purple-400";
+  const serviceColor = isGitHub ? "text-[#F97316]" : isDiscord ? "text-[#6366F1]" : "text-[#A855F7]";
   const style = RISK_STYLES[riskLevel] || RISK_STYLES.medium;
   const HeaderIcon = style.headerIcon;
 
@@ -128,53 +125,53 @@ function StepUpApprovalCard({
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className={`rounded-lg border ${style.border} ${style.bg} p-4 space-y-3`}
+      className={`border ${style.border} ${style.bg} p-4 space-y-3`}
     >
       {/* Header */}
       <div className="flex items-center gap-2">
-        <HeaderIcon className={`w-4 h-4 ${style.headerColor}`} />
-        <span className={`text-xs font-semibold ${style.headerColor} uppercase tracking-wide`}>
+        <HeaderIcon className={`w-4 h-4 ${style.headerColor}`} strokeWidth={1.5} />
+        <span className={`text-xs font-semibold ${style.headerColor} uppercase tracking-wider`}>
           {style.headerText}
         </span>
       </div>
 
       {/* Risk level indicator for high-risk actions */}
       {riskLevel === "high" && (
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-red-500/10 border border-red-500/20">
-          <Shield className="w-3.5 h-3.5 text-red-400" />
-          <span className="text-[11px] text-red-300">
+        <div className="flex items-center gap-2 px-3 py-1.5 border border-[#DC2626]/20 bg-[#DC2626]/10">
+          <Shield className="w-3.5 h-3.5 text-[#DC2626]" strokeWidth={1.5} />
+          <span className="text-[11px] text-[#DC2626]">
             This action is classified as <strong>high risk</strong> by the Risk Engine. Identity re-verification is required before execution.
           </span>
         </div>
       )}
 
       {/* Action details */}
-      <div className="flex items-start gap-3 p-3 rounded-md bg-accent/30 border border-border/30">
-        <Icon className={`w-5 h-5 ${serviceColor} mt-0.5 shrink-0`} />
+      <div className="flex items-start gap-3 p-3 border border-[#262626] bg-[#0A0A0A]">
+        <Icon className={`w-5 h-5 ${serviceColor} mt-0.5 shrink-0`} strokeWidth={1.5} />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium">{description}</p>
           {isGitHub && Boolean("repo" in details && details.repo) && (
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-[#737373] mt-1">
               Repository: <span className="font-mono">{String(details.repo)}</span>
             </p>
           )}
           {isGitHub && Boolean("title" in details && details.title) && (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-[#737373]">
               Title: {String(details.title)}
             </p>
           )}
           {(isSlack) && Boolean("channel" in details && details.channel) && (
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-[#737373] mt-1">
               Channel: <span className="font-mono">#{String(details.channel)}</span>
             </p>
           )}
           {isDiscord && Boolean("channelId" in details && details.channelId) && (
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-[#737373] mt-1">
               Channel ID: <span className="font-mono">{String(details.channelId)}</span>
             </p>
           )}
           {Boolean("message" in details && details.message) && (
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-xs text-[#737373] mt-1">
               Message: <span className="italic">&ldquo;{String(details.message).slice(0, 100)}&rdquo;</span>
             </p>
           )}
@@ -191,7 +188,7 @@ function StepUpApprovalCard({
           <Button
             size="sm"
             onClick={() => onApprove(pendingActionId)}
-            className={`${riskLevel === "high" ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"} text-white text-xs gap-1.5`}
+            className={`text-xs ${riskLevel === "high" ? "bg-[#DC2626] hover:bg-[#DC2626]/90 text-[#FAFAFA]" : "bg-[#22C55E] hover:bg-[#22C55E]/90 text-[#0A0A0A]"}`}
           >
             <ShieldCheck className="w-3.5 h-3.5" />
             {style.approveText}
@@ -200,12 +197,12 @@ function StepUpApprovalCard({
             size="sm"
             variant="outline"
             onClick={() => onDeny(pendingActionId)}
-            className="text-xs text-red-400 border-red-400/30 hover:bg-red-400/10 gap-1.5"
+            className="text-xs text-[#DC2626] border-[#DC2626]/30 hover:bg-[#DC2626]/10"
           >
             <XCircle className="w-3.5 h-3.5" />
             Deny
           </Button>
-          <span className="text-[10px] text-muted-foreground ml-auto">
+          <span className="text-[10px] text-[#737373] ml-auto">
             Expires in 5 minutes
           </span>
         </div>
@@ -220,7 +217,7 @@ function StepUpApprovalCard({
 
       {state === "executed" && approvalState?.result && (
         <div className="space-y-2">
-          <div className="flex items-center gap-2 text-xs text-green-400">
+          <div className="flex items-center gap-2 text-xs text-[#22C55E]">
             <ShieldCheck className="w-3.5 h-3.5" />
             Action authorized and executed successfully
           </div>
@@ -229,25 +226,25 @@ function StepUpApprovalCard({
               href={String(approvalState.result.url)}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-primary hover:underline"
+              className="text-xs text-[#FF3D00] hover:underline"
             >
               {String(approvalState.result.url)}
             </a>
           )}
           {isDiscord && Boolean(approvalState.result.sent) && (
-            <p className="text-xs text-muted-foreground flex items-center gap-1">
+            <p className="text-xs text-[#737373] flex items-center gap-1">
               <MessageSquare className="w-3 h-3" />
               Message sent to Discord channel
             </p>
           )}
           {isSlack && Boolean(approvalState.result.sent) && (
-            <p className="text-xs text-muted-foreground flex items-center gap-1">
+            <p className="text-xs text-[#737373] flex items-center gap-1">
               <MessageSquare className="w-3 h-3" />
               Message sent to Slack channel
             </p>
           )}
           {Boolean(approvalState.result.messageId) && (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-[#737373]">
               Message ID: <span className="font-mono">{String(approvalState.result.messageId)}</span>
             </p>
           )}
@@ -255,21 +252,21 @@ function StepUpApprovalCard({
       )}
 
       {state === "approved" && (
-        <div className="flex items-center gap-2 text-xs text-green-400">
+        <div className="flex items-center gap-2 text-xs text-[#22C55E]">
           <ShieldCheck className="w-3.5 h-3.5" />
           Approved — executing...
         </div>
       )}
 
       {state === "denied" && (
-        <div className="flex items-center gap-2 text-xs text-red-400">
+        <div className="flex items-center gap-2 text-xs text-[#DC2626]">
           <XCircle className="w-3.5 h-3.5" />
           Action denied by user
         </div>
       )}
 
       {state === "error" && (
-        <div className="flex items-center gap-2 text-xs text-red-400">
+        <div className="flex items-center gap-2 text-xs text-[#DC2626]">
           <XCircle className="w-3.5 h-3.5" />
           {approvalState?.error || "Failed to execute action"}
         </div>
@@ -294,12 +291,12 @@ function ToastContainer({ toasts, onDismiss }: { toasts: Toast[]; onDismiss: (id
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg border shadow-lg ${
+            className={`flex items-center gap-3 px-4 py-3 border ${
               toast.type === "success"
-                ? "bg-green-500/10 border-green-500/30 text-green-400"
+                ? "bg-[#22C55E]/10 border-[#22C55E]/30 text-[#22C55E]"
                 : toast.type === "error"
-                  ? "bg-red-500/10 border-red-500/30 text-red-400"
-                  : "bg-blue-500/10 border-blue-500/30 text-blue-400"
+                  ? "bg-[#DC2626]/10 border-[#DC2626]/30 text-[#DC2626]"
+                  : "bg-[#3B82F6]/10 border-[#3B82F6]/30 text-[#3B82F6]"
             }`}
           >
             {toast.type === "success" && <Check className="w-4 h-4 shrink-0" />}
@@ -425,20 +422,20 @@ export function ChatInterface() {
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-[#0A0A0A]">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-border/50 flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-          <Network className="w-4 h-4 text-primary" />
+      <div className="px-6 py-4 border-b border-[#262626] flex items-center gap-3">
+        <div className="w-8 h-8 bg-[#FF3D00] flex items-center justify-center">
+          <Network className="w-4 h-4 text-[#0A0A0A]" strokeWidth={1.5} />
         </div>
         <div>
-          <h1 className="font-semibold text-sm">Nexus AI Agent</h1>
-          <p className="text-xs text-muted-foreground">
+          <h1 className="font-semibold text-sm tracking-tight">Nexus AI Agent</h1>
+          <p className="text-xs text-[#737373]">
             Connected to Google, GitHub, Slack &amp; Discord via Token Vault
           </p>
         </div>
         <Badge variant="outline" className="ml-auto text-xs">
-          <Shield className="w-3 h-3 mr-1" />
+          <Shield className="w-3 h-3 mr-1" strokeWidth={1.5} />
           Secure
         </Badge>
       </div>
@@ -451,15 +448,15 @@ export function ChatInterface() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-center py-12"
+              className="text-center py-16"
             >
-              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                <Network className="w-8 h-8 text-primary" />
+              <div className="w-16 h-16 bg-[#FF3D00] flex items-center justify-center mx-auto mb-6">
+                <Network className="w-8 h-8 text-[#0A0A0A]" strokeWidth={1.5} />
               </div>
-              <h2 className="text-xl font-semibold mb-2">
+              <h2 className="text-2xl font-bold tracking-tight mb-3">
                 What can I help you with?
               </h2>
-              <p className="text-sm text-muted-foreground max-w-md mx-auto mb-8">
+              <p className="text-sm text-[#737373] max-w-md mx-auto mb-10">
                 I can access your Gmail, Google Calendar, GitHub repos, Slack
                 channels, and Discord servers. Every action is scoped and
                 audited.
@@ -472,7 +469,7 @@ export function ChatInterface() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-w-lg mx-auto"
+                    className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg mx-auto"
                   >
                     {suggestedPrompts.map((prompt, i) => (
                       <button
@@ -481,7 +478,7 @@ export function ChatInterface() {
                           setInput(prompt);
                           textareaRef.current?.focus();
                         }}
-                        className="text-left text-xs p-3 rounded-lg border border-border/50 hover:bg-accent/50 transition-colors text-muted-foreground hover:text-foreground"
+                        className="text-left text-xs p-4 border border-[#262626] hover:border-[#404040] transition-colors duration-150 text-[#737373] hover:text-[#FAFAFA]"
                       >
                         {prompt}
                       </button>
@@ -502,28 +499,27 @@ export function ChatInterface() {
             >
               {/* Avatar */}
               <div
-                className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                className={`w-8 h-8 flex items-center justify-center shrink-0 ${
                   message.role === "user"
-                    ? "bg-accent"
-                    : "bg-primary/10"
+                    ? "border border-[#262626]"
+                    : "bg-[#FF3D00]"
                 }`}
               >
                 {message.role === "user" ? (
-                  <User className="w-4 h-4" />
+                  <User className="w-4 h-4 text-[#737373]" strokeWidth={1.5} />
                 ) : (
-                  <Network className="w-4 h-4 text-primary" />
+                  <Network className="w-4 h-4 text-[#0A0A0A]" strokeWidth={1.5} />
                 )}
               </div>
 
               {/* Content */}
               <div className="flex-1 space-y-2">
-                <div className="text-xs font-medium text-muted-foreground">
+                <div className="text-xs font-medium text-[#737373] uppercase tracking-wider">
                   {message.role === "user" ? "You" : "Nexus"}
                 </div>
 
                 {/* Message parts */}
                 {message.parts?.map((part, i) => {
-                  // Handle tool parts (v6: type is "tool-{name}" or "dynamic-tool")
                   const partType = part.type as string;
                   if (partType.startsWith("tool-") || partType === "dynamic-tool") {
                     const toolName = partType === "dynamic-tool"
@@ -535,7 +531,6 @@ export function ChatInterface() {
                     const isComplete = partAny.state === "output-available";
                     const isError = partAny.state === "error";
 
-                    // Check if this is a write tool that returned a step-up approval request
                     const output = partAny.output as Record<string, unknown> | undefined;
                     if (
                       isComplete &&
@@ -559,153 +554,150 @@ export function ChatInterface() {
                       );
                     }
 
-                    // Render clickable Discord guilds list
                     if (toolName === "listDiscordGuilds" && output?.guilds && Array.isArray(output.guilds)) {
                       const guilds = output.guilds as Array<{ id: string; name: string; icon?: string | null; isOwner?: boolean }>;
                       return (
                         <div key={i} className="space-y-2">
-                          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-accent/30 border border-border/30 text-xs">
-                            <Server className="w-3.5 h-3.5 text-indigo-400" />
-                            <span className="text-muted-foreground">Discord Servers:</span>
+                          <div className="flex items-center gap-2 px-3 py-2 border border-[#262626] bg-[#0F0F0F] text-xs">
+                            <Server className="w-3.5 h-3.5 text-[#6366F1]" strokeWidth={1.5} />
+                            <span className="text-[#737373]">Discord Servers:</span>
                             <span className="ml-auto">
-                              {isComplete ? <CheckCircle className="w-3 h-3 text-green-400" /> : <Loader2 className="w-3 h-3 animate-spin text-primary" />}
+                              {isComplete ? <CheckCircle className="w-3 h-3 text-[#22C55E]" /> : <Loader2 className="w-3 h-3 animate-spin text-[#FF3D00]" />}
                             </span>
                           </div>
-                          <div className="grid gap-1.5">
+                          <div className="grid gap-2">
                             {guilds.map((guild) => (
                               <button
                                 key={guild.id}
                                 onClick={() => sendQuickMessage(`list channels in ${guild.name}`)}
-                                className="flex items-center gap-3 p-3 rounded-lg bg-accent/20 border border-border/30 hover:bg-accent/40 hover:border-indigo-500/30 transition-all text-left group"
+                                className="flex items-center gap-3 p-3 border border-[#262626] bg-[#0F0F0F] hover:border-[#6366F1]/30 transition-colors duration-150 text-left group"
                               >
-                                <Server className="w-4 h-4 text-indigo-400 shrink-0" />
+                                <Server className="w-4 h-4 text-[#6366F1] shrink-0" strokeWidth={1.5} />
                                 <div className="flex-1 min-w-0">
                                   <p className="text-sm font-medium truncate">{guild.name}</p>
-                                  <p className="text-xs text-muted-foreground font-mono">ID: {guild.id}</p>
+                                  <p className="text-xs text-[#737373] font-mono">ID: {guild.id}</p>
                                 </div>
-                                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-indigo-400 transition-colors" />
+                                <ChevronRight className="w-4 h-4 text-[#737373] group-hover:text-[#6366F1] transition-colors duration-150" />
                               </button>
                             ))}
                           </div>
-                          <p className="text-[10px] text-muted-foreground text-center">Click a server to list its channels</p>
+                          <p className="text-[10px] text-[#737373] text-center">Click a server to list its channels</p>
                         </div>
                       );
                     }
 
-                    // Render clickable Discord channels list
                     if (toolName === "listDiscordChannels" && output?.channels && Array.isArray(output.channels)) {
                       const channels = output.channels as Array<{ id: string; name: string }>;
                       return (
                         <div key={i} className="space-y-2">
-                          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-accent/30 border border-border/30 text-xs">
-                            <Hash className="w-3.5 h-3.5 text-indigo-400" />
-                            <span className="text-muted-foreground">Discord Channels:</span>
+                          <div className="flex items-center gap-2 px-3 py-2 border border-[#262626] bg-[#0F0F0F] text-xs">
+                            <Hash className="w-3.5 h-3.5 text-[#6366F1]" strokeWidth={1.5} />
+                            <span className="text-[#737373]">Discord Channels:</span>
                             <span className="ml-auto">
-                              {isComplete ? <CheckCircle className="w-3 h-3 text-green-400" /> : <Loader2 className="w-3 h-3 animate-spin text-primary" />}
+                              {isComplete ? <CheckCircle className="w-3 h-3 text-[#22C55E]" /> : <Loader2 className="w-3 h-3 animate-spin text-[#FF3D00]" />}
                             </span>
                           </div>
-                          <div className="grid gap-1.5">
+                          <div className="grid gap-2">
                             {channels.map((channel) => (
                               <button
                                 key={channel.id}
                                 onClick={() => sendQuickMessage(`send hello to #${channel.name}`)}
-                                className="flex items-center gap-3 p-3 rounded-lg bg-accent/20 border border-border/30 hover:bg-accent/40 hover:border-indigo-500/30 transition-all text-left group"
+                                className="flex items-center gap-3 p-3 border border-[#262626] bg-[#0F0F0F] hover:border-[#6366F1]/30 transition-colors duration-150 text-left group"
                               >
-                                <Hash className="w-4 h-4 text-indigo-400 shrink-0" />
+                                <Hash className="w-4 h-4 text-[#6366F1] shrink-0" strokeWidth={1.5} />
                                 <div className="flex-1 min-w-0">
                                   <p className="text-sm font-medium">#{channel.name}</p>
-                                  <p className="text-xs text-muted-foreground font-mono">ID: {channel.id}</p>
+                                  <p className="text-xs text-[#737373] font-mono">ID: {channel.id}</p>
                                 </div>
-                                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-indigo-400 transition-colors" />
+                                <ChevronRight className="w-4 h-4 text-[#737373] group-hover:text-[#6366F1] transition-colors duration-150" />
                               </button>
                             ))}
                           </div>
-                          <p className="text-[10px] text-muted-foreground text-center">Click a channel to send a message</p>
+                          <p className="text-[10px] text-[#737373] text-center">Click a channel to send a message</p>
                         </div>
                       );
                     }
 
-                    // Render clickable GitHub repos list
                     if (toolName === "listGitHubRepos" && output?.repos && Array.isArray(output.repos)) {
                       const repos = output.repos as Array<{ id: number; name: string; full_name: string; html_url: string; description?: string | null; private?: boolean; fork?: boolean }>;
                       return (
                         <div key={i} className="space-y-2">
-                          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-accent/30 border border-border/30 text-xs">
-                            <GitBranch className="w-3.5 h-3.5 text-white" />
-                            <span className="text-muted-foreground">GitHub Repositories:</span>
+                          <div className="flex items-center gap-2 px-3 py-2 border border-[#262626] bg-[#0F0F0F] text-xs">
+                            <GitBranch className="w-3.5 h-3.5 text-[#FAFAFA]" strokeWidth={1.5} />
+                            <span className="text-[#737373]">GitHub Repositories:</span>
                             <span className="ml-auto">
-                              {isComplete ? <CheckCircle className="w-3 h-3 text-green-400" /> : <Loader2 className="w-3 h-3 animate-spin text-primary" />}
+                              {isComplete ? <CheckCircle className="w-3 h-3 text-[#22C55E]" /> : <Loader2 className="w-3 h-3 animate-spin text-[#FF3D00]" />}
                             </span>
                           </div>
-                          <div className="grid gap-1.5">
+                          <div className="grid gap-2">
                             {repos.map((repo) => (
                               <div
                                 key={repo.id}
-                                className="flex items-center gap-3 p-3 rounded-lg bg-accent/20 border border-border/30 hover:bg-accent/40 hover:border-white/30 transition-all group"
+                                className="flex items-center gap-3 p-3 border border-[#262626] bg-[#0F0F0F] hover:border-[#404040] transition-colors duration-150 group"
                               >
-                                <GitBranch className="w-4 h-4 text-white shrink-0" />
+                                <GitBranch className="w-4 h-4 text-[#FAFAFA] shrink-0" strokeWidth={1.5} />
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2">
                                     <p className="text-sm font-medium truncate">{repo.name}</p>
-                                    {repo.private && <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-yellow-400 border-yellow-400/30">Private</Badge>}
-                                    {repo.fork && <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-blue-400 border-blue-400/30">Forked</Badge>}
+                                    {repo.private && <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-[#EAB308] border-[#EAB308]/30">Private</Badge>}
+                                    {repo.fork && <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-[#3B82F6] border-[#3B82F6]/30">Forked</Badge>}
                                   </div>
-                                  {repo.description && <p className="text-xs text-muted-foreground truncate mt-0.5">{repo.description}</p>}
-                                  <p className="text-xs text-muted-foreground/60 font-mono mt-0.5">{repo.full_name}</p>
+                                  {repo.description && <p className="text-xs text-[#737373] truncate mt-0.5">{repo.description}</p>}
+                                  <p className="text-xs text-[#737373]/60 font-mono mt-0.5">{repo.full_name}</p>
                                 </div>
                                 <div className="flex items-center gap-1">
                                   <button
                                     onClick={() => sendQuickMessage(`show issues in ${repo.name}`)}
-                                    className="p-1.5 rounded-md hover:bg-accent/50 transition-colors"
+                                    className="p-1.5 hover:bg-[#1A1A1A] transition-colors duration-150"
                                     title="View issues"
                                   >
-                                    <GitBranch className="w-3.5 h-3.5 text-muted-foreground group-hover:text-white" />
+                                    <GitBranch className="w-3.5 h-3.5 text-[#737373] group-hover:text-[#FAFAFA]" strokeWidth={1.5} />
                                   </button>
                                   <a
                                     href={repo.html_url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="p-1.5 rounded-md hover:bg-accent/50 transition-colors"
+                                    className="p-1.5 hover:bg-[#1A1A1A] transition-colors duration-150"
                                     title="Open in GitHub"
                                   >
-                                    <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-white" />
+                                    <ExternalLink className="w-3.5 h-3.5 text-[#737373] group-hover:text-[#FAFAFA]" strokeWidth={1.5} />
                                   </a>
                                 </div>
                               </div>
                             ))}
                           </div>
-                          <p className="text-[10px] text-muted-foreground text-center">Click an icon to view issues or open the repo</p>
+                          <p className="text-[10px] text-[#737373] text-center">Click an icon to view issues or open the repo</p>
                         </div>
                       );
                     }
 
-                    // Standard tool badge for read operations
                     return (
                       <div
                         key={i}
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-accent/30 border border-border/30 text-xs"
+                        className="flex items-center gap-2 px-3 py-2 border border-[#262626] bg-[#0F0F0F] text-xs"
                       >
                         <Icon
-                          className={`w-3.5 h-3.5 ${toolInfo?.color || "text-muted-foreground"}`}
+                          className={`w-3.5 h-3.5 ${toolInfo?.color || "text-[#737373]"}`}
+                          strokeWidth={1.5}
                         />
-                        <span className="text-muted-foreground">
+                        <span className="text-[#737373]">
                           {toolInfo?.service || "Tool"}:
                         </span>
                         <span className="font-medium">
                           {toolName}
                         </span>
                         {WRITE_TOOLS.has(toolName) && (
-                          <Badge variant="outline" className="text-[10px] text-yellow-400 border-yellow-400/30 ml-1">
+                          <Badge variant="outline" className="text-[10px] text-[#EAB308] border-[#EAB308]/30 ml-1">
                             write · risk engine
                           </Badge>
                         )}
                         <span className="ml-auto">
                           {isError ? (
-                            <XCircle className="w-3 h-3 text-destructive" />
+                            <XCircle className="w-3 h-3 text-[#DC2626]" />
                           ) : isComplete ? (
-                            <CheckCircle className="w-3 h-3 text-green-400" />
+                            <CheckCircle className="w-3 h-3 text-[#22C55E]" />
                           ) : (
-                            <Loader2 className="w-3 h-3 animate-spin text-primary" />
+                            <Loader2 className="w-3 h-3 animate-spin text-[#FF3D00]" />
                           )}
                         </span>
                       </div>
@@ -717,7 +709,7 @@ export function ChatInterface() {
                     return (
                       <div
                         key={i}
-                        className="text-sm leading-relaxed prose prose-invert max-w-none prose-sm prose-p:my-1 prose-ul:my-1 prose-li:my-0.5 prose-table:my-2 prose-th:px-3 prose-th:py-1.5 prose-td:px-3 prose-td:py-1.5 prose-th:text-left prose-a:text-primary prose-a:no-underline hover:prose-a:underline"
+                        className="text-sm leading-relaxed prose prose-invert max-w-none prose-sm prose-p:my-1 prose-ul:my-1 prose-li:my-0.5 prose-table:my-2 prose-th:px-3 prose-th:py-1.5 prose-td:px-3 prose-td:py-1.5 prose-th:text-left prose-a:text-[#FF3D00] prose-a:no-underline hover:prose-a:underline"
                       >
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
                           {textContent}
@@ -730,7 +722,7 @@ export function ChatInterface() {
 
                 {/* Fallback when no parts */}
                 {(!message.parts || message.parts.length === 0) && (
-                  <div className="text-sm leading-relaxed text-muted-foreground">
+                  <div className="text-sm leading-relaxed text-[#737373]">
                     (No content)
                   </div>
                 )}
@@ -740,7 +732,7 @@ export function ChatInterface() {
 
           {/* Loading indicator */}
           {error && (
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-destructive/10 border border-destructive/30 text-xs text-destructive">
+            <div className="flex items-center gap-2 px-3 py-2 border border-[#DC2626]/30 bg-[#DC2626]/10 text-xs text-[#DC2626]">
               <XCircle className="w-3.5 h-3.5 shrink-0" />
               <span>{error.message || "Something went wrong"}</span>
             </div>
@@ -750,7 +742,7 @@ export function ChatInterface() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex items-center gap-2 text-xs text-muted-foreground"
+              className="flex items-center gap-2 text-xs text-[#737373]"
             >
               <Loader2 className="w-3 h-3 animate-spin" />
               Nexus is thinking...
@@ -760,7 +752,7 @@ export function ChatInterface() {
       </ScrollArea>
 
       {/* Input */}
-      <div className="p-4 border-t border-border/50">
+      <div className="p-4 border-t border-[#262626]">
         <form
           onSubmit={handleSubmit}
           className="max-w-3xl mx-auto flex gap-2 items-end"
@@ -772,7 +764,7 @@ export function ChatInterface() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Ask Nexus anything... (e.g., 'Check my unread emails')"
-              className="min-h-11 max-h-30 resize-none pr-12 text-sm"
+              className="min-h-12 max-h-30 resize-none pr-12 text-sm"
               rows={1}
             />
           </div>
@@ -780,7 +772,7 @@ export function ChatInterface() {
             type="submit"
             size="icon"
             disabled={isLoading || !input.trim()}
-            className="shrink-0 h-11 w-11"
+            className="shrink-0 h-12 w-12"
           >
             {isLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -789,7 +781,7 @@ export function ChatInterface() {
             )}
           </Button>
         </form>
-        <p className="text-[10px] text-muted-foreground text-center mt-2">
+        <p className="text-[10px] text-[#737373] text-center mt-3 uppercase tracking-wider">
           All actions are authenticated via Auth0 Token Vault and logged in the
           audit trail
         </p>
@@ -798,4 +790,3 @@ export function ChatInterface() {
     </div>
   );
 }
-

@@ -52,22 +52,24 @@ export function Sidebar({ userName }: { userName?: string }) {
   return (
     <aside
       className={cn(
-        "h-full flex flex-col border-r border-border/50 bg-sidebar transition-all duration-300",
+        "h-full flex flex-col border-r border-[#262626] bg-[#0F0F0F] transition-all duration-300",
         collapsed ? "w-16" : "w-64"
       )}
     >
       {/* Logo */}
-      <div className="h-16 flex items-center px-4 border-b border-border/50 justify-between">
-        <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
-            <Network className="w-4 h-4 text-primary-foreground" />
+      <div className="h-16 flex items-center px-4 border-b border-[#262626] justify-between">
+        <Link href="/dashboard" className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-[#FF3D00] flex items-center justify-center shrink-0">
+            <Network className="w-4 h-4 text-[#0A0A0A]" />
           </div>
-          {!collapsed && <span className="text-lg font-semibold">Nexus</span>}
+          {!collapsed && (
+            <span className="text-lg font-semibold tracking-tight">Nexus</span>
+          )}
         </Link>
         <Button
           variant="ghost"
-          size="icon"
-          className="h-7 w-7 shrink-0"
+          size="icon-sm"
+          className="shrink-0"
           onClick={() => setCollapsed(!collapsed)}
         >
           {collapsed ? (
@@ -89,13 +91,13 @@ export function Sidebar({ userName }: { userName?: string }) {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                "flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-colors duration-150",
                 isActive
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                  ? "text-[#FF3D00] border-l-2 border-[#FF3D00] pl-[10px]"
+                  : "text-[#737373] hover:text-[#FAFAFA]"
               )}
             >
-              <item.icon className="w-4 h-4 shrink-0" />
+              <item.icon className="w-4 h-4 shrink-0" strokeWidth={1.5} />
               {!collapsed && <span>{item.label}</span>}
             </Link>
           );
@@ -103,17 +105,17 @@ export function Sidebar({ userName }: { userName?: string }) {
       </nav>
 
       {/* User & Logout */}
-      <div className="p-3 border-t border-border/50">
+      <div className="p-3 border-t border-[#262626]">
         {userName && !collapsed && (
           <div className="px-3 mb-2">
-            <p className="text-xs text-muted-foreground truncate">{userName}</p>
+            <p className="text-xs text-[#737373] truncate">{userName}</p>
           </div>
         )}
         <a
           href="/auth/logout"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors"
+          className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-[#737373] hover:text-[#FAFAFA] transition-colors duration-150"
         >
-          <LogOut className="w-4 h-4 shrink-0" />
+          <LogOut className="w-4 h-4 shrink-0" strokeWidth={1.5} />
           {!collapsed && <span>Log Out</span>}
         </a>
       </div>
